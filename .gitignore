@@ -1,0 +1,4 @@
+venv
+.env
+data
+src/database/db_backup.sql
