@@ -10,9 +10,9 @@ from database import db
 import asyncio
 from services.menu_services import *
 from aiogram.fsm.context import FSMContext
-from keyboards.inline_keyboards import *
-from keyboards.reply_keyboards import *
-from messages.menu_messages import *
+from src.bot.app.keyboards.inline_keyboards import *
+from src.bot.app.keyboards.reply_keyboards import *
+from src.bot.app.messages.menu_messages import *
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 router = Router()

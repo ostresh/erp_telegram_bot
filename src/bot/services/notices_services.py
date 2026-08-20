@@ -2,9 +2,9 @@ import sys
 import os
 import asyncio
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from database import db
-from utils.utils import get_games_dict, get_games_tags_dict, delete_prefix_from_game_name, add_prefix_on_game_name
-from utils.messages import divide_message_in_blocks
+from src.bot.database import db
+from src.bot.utils.utils import get_games_dict, get_games_tags_dict, delete_prefix_from_game_name, add_prefix_on_game_name
+from src.bot.utils.messages import divide_message_in_blocks
 
 async def create_general(db):
     

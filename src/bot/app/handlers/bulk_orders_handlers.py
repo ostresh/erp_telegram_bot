@@ -4,13 +4,13 @@ import sys
 import os
 from aiogram.filters import StateFilter
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from database import Database, db
+from src.bot.database import Database, db
 import asyncio
-from states.states import BulkOrderSG
+from src.bot.app.states.states import BulkOrderSG
 from services.bulk_orders_services import *
 from services.info_services import *
 from aiogram.fsm.context import FSMContext
-from keyboards.inline_keyboards import *
+from src.bot.app.keyboards.inline_keyboards import *
 from services.menu_services import create_menu_text, create_menu
 
 router = Router()

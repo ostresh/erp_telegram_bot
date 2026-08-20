@@ -1,9 +1,9 @@
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from database import db
+from src.bot.database import db
 import asyncio
-from utils.utils import get_games_dict, get_numbers, get_trns_dict, create_dataset_for_one_row, add_prefix_on_game_name, delete_prefix_from_game_name
+from src.bot.utils.utils import get_games_dict, get_numbers, get_trns_dict, create_dataset_for_one_row, add_prefix_on_game_name, delete_prefix_from_game_name
 from datetime import datetime, timezone, timedelta
 
 

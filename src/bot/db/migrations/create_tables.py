@@ -2,7 +2,7 @@ import asyncio
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-from database import db_sql
+from src.bot.database import db_sql
 
 
 sql_query = '''

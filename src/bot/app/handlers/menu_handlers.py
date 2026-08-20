@@ -6,7 +6,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import asyncio
 from aiogram.fsm.context import FSMContext
 from services.menu_services import *
-from callbacks.callbacks import MenuCB
+from src.bot.app.callbacks.callbacks import MenuCB
 from services.menu_services import *
 
 router = Router()

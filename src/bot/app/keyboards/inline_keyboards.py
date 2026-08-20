@@ -5,9 +5,9 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 import asyncio
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from callbacks.callbacks import *
-from messages.menu_messages import MenuMessage
-from utils.utils import row_sizes
+from src.bot.app.callbacks.callbacks import *
+from src.bot.app.messages.menu_messages import MenuMessage
+from src.bot.utils.utils import row_sizes
 
 
 

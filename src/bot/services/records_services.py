@@ -1,9 +1,9 @@
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from database import db
+from src.bot.database import db
 import asyncio
-from utils.utils import *
+from src.bot.utils.utils import *
 from datetime import datetime, timezone, timedelta
 
 async def delete_row(db, id_):

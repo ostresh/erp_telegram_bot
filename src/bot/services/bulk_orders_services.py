@@ -1,9 +1,9 @@
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from database import db
+from src.bot.database import db
 import asyncio
-from utils.utils import get_games_dict, get_today
+from src.bot.utils.utils import get_games_dict, get_today
 from datetime import datetime, timezone, timedelta
 import csv
 from io import StringIO

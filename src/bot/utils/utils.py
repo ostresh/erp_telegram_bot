@@ -3,8 +3,8 @@ import sys
 import os
 import asyncio
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from bot.messages.menu_messages import *
-from database import Database, db
+from src.bot.app.messages.menu_messages import *
+from src.bot.database import Database, db
 import math
 
 async def get_games_dict(db):

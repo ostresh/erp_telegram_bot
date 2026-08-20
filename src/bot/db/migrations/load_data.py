@@ -6,9 +6,9 @@ import pandas as pd
 import json
 from datetime import datetime
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-from database import db
-from utils.utils import *
-from services.bulk_orders_services import change_records_comments_from_bulk_orders
+from src.bot.database import db
+from src.bot.utils.utils import *
+from src.bot.services.bulk_orders_services import change_records_comments_from_bulk_orders
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 

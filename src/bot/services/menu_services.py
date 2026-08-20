@@ -1,11 +1,11 @@
 
-from bot.messages.menu_messages import MenuMessage
-from services.info_services import get_info_of_financy
-from database import Database, db
+from src.bot.app.messages.menu_messages import MenuMessage
+from src.bot.services.info_services import get_info_of_financy
+from src.bot.database import Database, db
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from bot.keyboards.inline_keyboards import *
+from src.bot.app.keyboards.inline_keyboards import *
 
 async def create_menu_text(fields = None):
     

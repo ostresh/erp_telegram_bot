@@ -1,11 +1,11 @@
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from database import db
+from src.bot.database import db
 import asyncio
-from utils.utils import get_trns_dict, get_games_dict
-from utils.messages import create_block_of_messages_bulk_orders, create_blocks_of_messages_records, create_message_financial_indicators, change_message_group_games_by_prefixes
-from utils.emoji import Emoji
+from src.bot.utils.utils import get_trns_dict, get_games_dict
+from src.bot.utils.messages import create_block_of_messages_bulk_orders, create_blocks_of_messages_records, create_message_financial_indicators, change_message_group_games_by_prefixes
+from src.bot.utils.emoji import Emoji
 
 async def get_info_of_financy(db, fields = None):
     

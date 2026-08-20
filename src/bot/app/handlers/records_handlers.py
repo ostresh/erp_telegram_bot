@@ -4,19 +4,19 @@ import sys
 import os
 from aiogram.filters import StateFilter
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from database import Database, db
+from src.bot.database import Database, db
 import asyncio
 from utils.utils import get_today, create_new_id_for_records
-from states.states import RecordsSG
+from src.bot.app.states.states import RecordsSG
 from services.info_services import *
 from services.records_services import *
-from keyboards.inline_keyboards import *
-from keyboards.reply_keyboards import *
+from src.bot.app.keyboards.inline_keyboards import *
+from src.bot.app.keyboards.reply_keyboards import *
 from services.menu_services import create_menu_text, create_menu
-from messages.menu_messages import MenuMessage
+from src.bot.app.messages.menu_messages import MenuMessage
 from .menu_handlers import create_menu
-from callbacks.callbacks import HandlerCB
-from callbacks.callbacks_texts import ACTION_TO_TEXT
+from src.bot.app.callbacks.callbacks import HandlerCB
+from src.bot.app.callbacks.callbacks_texts import ACTION_TO_TEXT
 from utils.emoji import Emoji
 
 

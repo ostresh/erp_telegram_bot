@@ -8,7 +8,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 from database import Database, db
 import asyncio
-from states.states import UserStates
+from src.bot.app.states.states import UserStates
 from services.info_services import *
 from services.notices_services import *
 from services.records_services import *

@@ -3,14 +3,14 @@ from aiogram.types import Message, CallbackQuery
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from database import Database, db
+from src.bot.database import Database, db
 import asyncio
-from states.states import GamesListSG
+from src.bot.app.states.states import GamesListSG
 from services.info_services import *
 from services.games_services import *
 from aiogram.fsm.context import FSMContext
-from callbacks.callbacks import HandlerCB
-from keyboards.inline_keyboards import *
+from src.bot.app.callbacks.callbacks import HandlerCB
+from src.bot.app.keyboards.inline_keyboards import *
 from services.menu_services import create_menu_text, create_menu
 
 router = Router()

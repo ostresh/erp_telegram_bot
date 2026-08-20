@@ -5,9 +5,9 @@ from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from config import config
-from database import db
-from bot.handlers import main_router
-from bot.middleware.auth_middlewares import AuthMiddleware
+from src.bot.database import db
+from src.bot.app.handlers import main_router
+from src.bot.app.middleware.auth_middlewares import AuthMiddleware
 
 async def main():
     """Основная функция запуска бота"""
@@ -20,7 +20,6 @@ async def main():
     # Инициализация бота и диспетчера
     bot = Bot(token=config.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     dp = Dispatcher()
-    await bot.delete_webhook(drop_pending_updates=True)
     try:
         # Подключаемся к базе данных
         await db.connect()

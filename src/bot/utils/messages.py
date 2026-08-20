@@ -1,12 +1,12 @@
 import math
 from .emoji import Emoji
-from database import db
+from src.bot.database import db
 from .utils import get_games_dict, get_trns_dict
 import re
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from bot.messages.menu_messages import MenuMessage
+from src.bot.app.messages.menu_messages import MenuMessage
 
 async def create_blocks_of_messages_records(data, block):
     

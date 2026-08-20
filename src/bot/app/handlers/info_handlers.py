@@ -5,13 +5,13 @@ import os
 from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from database import Database, db
+from src.bot.database import Database, db
 import asyncio
-from states.states import InfoSG
+from src.bot.app.states.states import InfoSG
 from services.info_services import *
 from services.menu_services import create_menu_text, create_menu
-from keyboards.inline_keyboards import *
-from messages.menu_messages import MenuMessage
+from src.bot.app.keyboards.inline_keyboards import *
+from src.bot.app.messages.menu_messages import MenuMessage
 
 
 router = Router()

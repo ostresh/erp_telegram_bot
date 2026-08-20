@@ -1,4 +1,4 @@
-from messages.menu_messages import MenuMessage
+from src.bot.app.messages.menu_messages import MenuMessage
 
 ACTION_TO_TEXT = {
     'local' : MenuMessage.LOCAL_TEXT,
