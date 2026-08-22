@@ -2,7 +2,6 @@ from datetime import datetime, timezone
 from typing import Optional, List
 from sqlalchemy import String, Integer, Text, DateTime, ForeignKey, CheckConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-from enum import Enum
 
 from bot.db.status.status import RecordStatus
 
@@ -36,6 +35,16 @@ class Utility(Base):
     def __repr__(self) -> str:
         return f"<Utility(id={self.id}, title='{self.title}')>"
 
+class Description(Base):
+    """Модель для описания"""
+    __tablename__ = 'description'
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    title: Mapped[str] = mapped_column(Text)
+    
+    def __repr__(self):
+        return f"<Description(id={self.id}, title='{self.title}')>"
+    
 
 class Record(Base):
     """Модель записи (основная таблица)"""
@@ -102,7 +111,7 @@ class Record(Base):
         return None
 
     def __repr__(self) -> str:
-        return f"<Record(id={self.id}, game_id={self.game_id}, trns_id={self.trns_id})>"
+        return f"<Record(id={self.id})>"
 
 
 class BulkOrder(Base):
