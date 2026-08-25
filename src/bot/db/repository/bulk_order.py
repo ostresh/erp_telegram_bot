@@ -1,7 +1,4 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, delete, and_, or_, exists
-from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Optional
 
 from bot.db.models import BulkOrder
 from bot.db.repository.base import BaseRepository

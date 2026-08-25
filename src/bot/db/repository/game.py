@@ -1,7 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, delete, and_, or_, exists
-from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Optional
+from sqlalchemy import select, exists
 
 from bot.db.models import Game
 from bot.db.repository.base import BaseRepository
@@ -25,13 +23,6 @@ class GameRepository(BaseRepository[Game]):
             bool есть ли игра
         """
         
-        stmt = (
-            select(
-                exists(
-                    select(Game.name)
-                    .where(Game.name == game_name)
-                )
-            )
-        )
+        stmt = select(Game.id).where(Game.name == game_name).limit(1)
         result = await self.session.execute(stmt)
-        return result.scalar()
+        return result.scalar_one_or_none() is not None

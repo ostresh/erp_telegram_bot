@@ -1,7 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, delete, and_, exists
-from sqlalchemy.ext.asyncio import AsyncSession
-from typing import TypeVar, Generic, Type, Optional, List, Any
+from sqlalchemy import select, update, delete
+from typing import TypeVar, Generic, Type, Optional, List
 
 from bot.db.models import Base
 
@@ -22,7 +21,7 @@ class BaseRepository(Generic[ModelType]):
         Создать запись
         
         Args:
-            **data - словарь с required полями для создания
+            item - объект модели
             
         Return:
             Объект модели
@@ -37,7 +36,7 @@ class BaseRepository(Generic[ModelType]):
         Создать запись
 
         Args:
-            **data - словарь с required полями для создания
+            items - список объектов модели
 
         Return:
             Список объектов модели
@@ -72,7 +71,7 @@ class BaseRepository(Generic[ModelType]):
         result = await self.session.execute(stmt)
         return result.scalars().all()
     
-    async def get_by_id(self, item_id: int) -> List[ModelType]:
+    async def get_by_id(self, item_id: int) -> Optional[ModelType]:
         """
         Чтение строки по id
         
@@ -98,7 +97,7 @@ class BaseRepository(Generic[ModelType]):
         Обновление данных в модели
         
         Args:
-            record_id - id обновляемой строки
+            item_id - id обновляемой строки
             **data - словарь с полями для обновления
         
         Return:
@@ -122,7 +121,7 @@ class BaseRepository(Generic[ModelType]):
         Удаление строки в модели
         
         Args:
-            record_id - id удаляемой строки
+            item_id - id удаляемой строки
         
         Return:
             bool удалилась ли строка

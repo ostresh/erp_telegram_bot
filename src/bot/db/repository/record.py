@@ -1,7 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, delete, and_, exists
-from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Optional, List
+from sqlalchemy import select, update, and_, exists
+from typing import List, Tuple
 
 from bot.db.models import Record, Game
 from bot.db.repository.base import BaseRepository
@@ -14,7 +13,7 @@ class RecordRepository(BaseRepository[Record]):
         super().__init__(session, Record)
     
     
-    async def is_game_aviable(self, game_name: str) -> bool:
+    async def is_game_available(self, game_name: str) -> bool:
         """
         Проверка, есть ли игра в наличии
         
@@ -25,17 +24,16 @@ class RecordRepository(BaseRepository[Record]):
         stmt = select(
         exists(
             select(Record.id)
+            .join(Game, Record.game_id == Game.id)
             .where(
-                Record.game_id.in_(
-                    select(Game.id).where(Game.name == game_name)
-                ),
+                Game.name == game_name,
                 Record.status == RecordStatus.AVAILABLE.value
             )
         ))
         result = await self.session.execute(stmt)
         return result.scalar()
     
-    async def get_aviable_games(self) -> List[Record]:
+    async def get_available_games(self) -> List[Tuple[str, int, int]]:
         """
         Получение всех игр из наличия
         С группировкой по играм
@@ -45,7 +43,7 @@ class RecordRepository(BaseRepository[Record]):
         """
         
         stmt = (
-            select(Game.name, Record.price_selling)
+            select(Game.name, Record.price_purchase, Record.price_selling)
             .join(Game, Record.game_id == Game.id)
             .where(Record.status == RecordStatus.AVAILABLE.value)
             .group_by(Record.game_id, Game.name, Record.price_selling)
@@ -69,14 +67,11 @@ class RecordRepository(BaseRepository[Record]):
         
         stmt = (
             update(Record)
+            .join(Game, Record.game_id == Game.id)
             .where(
-                and_(
-                    Record.status == RecordStatus.AVAILABLE.value,
-                    Record.game_id.in_(
-                        select(Game.id).where(Game.name == game_name)
-                        )
-                    )
-                )
+                Game.name == game_name,
+                Record.status == RecordStatus.AVAILABLE.value
+            )
             .values(price_selling=new_price)
         )
         
