@@ -1,32 +1,42 @@
 import logging
 import sys
+from colorlog import ColoredFormatter
 
 
 def setup_logger(level: int = logging.DEBUG) -> None:
     """
-    Простая настройка логирования для тестирования.
+    Настройка цветного логирования.
     
-    Показывает все логи в консоли.
-    
-    Args:
-        level: Уровень логирования (по умолчанию DEBUG)
+    Обычные уровни (DEBUG, INFO) - обычным шрифтом, приглушенные цвета.
+    Ошибки (WARNING, ERROR, CRITICAL) - жирным шрифтом, яркие цвета.
     """
-    # Создаем форматтер
-    formatter = logging.Formatter(
-        fmt='%(asctime)s | %(levelname)-8s | %(name)s | %(message)s',
-        datefmt='%H:%M:%S'
+    
+    # Цветной форматтер
+    # %(log_color)s стоит в начале и применяется ко ВСЕЙ строке,
+    # так как нет %(reset)s до конца строки
+    formatter = ColoredFormatter(
+        fmt=(
+            '%(log_color)s%(asctime)s | %(levelname)-8s | '
+            '%(name)s | %(message)s'
+        ),
+        datefmt='%H:%M:%S',
+        log_colors={
+            'DEBUG': 'light_blue',       # Приглушенный синий
+            'INFO': 'light_green',       # Приглушенный зеленый
+            'WARNING': 'bold_yellow',         # Обычный жёлтый
+            'ERROR': 'bold_red',         # ЖИРНЫЙ красный
+            'CRITICAL': 'bold_red',      # ЖИРНЫЙ красный
+        }
     )
     
-    # Создаем хендлер для консоли
+    # Хендлер для консоли
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(level)
     console_handler.setFormatter(formatter)
     
-    # Настраиваем корневой логгер
+    # Корневой логгер
     root_logger = logging.getLogger()
     root_logger.setLevel(level)
-    
-    # Очищаем существующие хендлеры (чтобы не дублировались)
     root_logger.handlers.clear()
     root_logger.addHandler(console_handler)
     
