@@ -23,18 +23,12 @@ AsyncSessionLocal = async_sessionmaker(
     autoflush=False,
 )
 
-
-class Database:
-    def __init__(self):
-        self.engine = engine
-        self.session_factory = AsyncSessionLocal
+def get_uow():
+    """
+    Фабричная функция для создания UnitOfWork.
     
-    async def connect(self):
-        async with self.session_factory() as session:
-            await session.execute("SELECT 1")
-    
-    async def close(self):
-        await self.engine.dispose()
-
-
-db = Database()
+    Returns:
+        UnitOfWork: Экземпляр с настроенной фабрикой сессий
+    """
+    from bot.db.unit_of_work import UnitOfWork
+    return UnitOfWork(session_factory=AsyncSessionLocal)

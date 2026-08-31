@@ -83,7 +83,7 @@ class RecordRepository(BaseRepository[Record]):
             logger.debug("Error getting available games")
             raise
     
-    async def update_price_selling_for_games(self, game_name: str, new_price: int) -> Optional[int]:
+    async def update_price_selling_for_games(self, game_name: str, new_price: int) -> int:
         """
         Обновляет цену продажи для всех доступных записей игры
         
@@ -103,10 +103,11 @@ class RecordRepository(BaseRepository[Record]):
         try:
             stmt = (
                 update(Record)
-                .join(Game, Record.game_id == Game.id)
                 .where(
-                    Game.name == game_name,
-                    Record.status == RecordStatus.AVAILABLE.value
+                    Record.status == RecordStatus.AVAILABLE.value,
+                    Record.game_id.in_(
+                        select(Game.id).where(Game.name == game_name)
+                    )
                 )
                 .values(price_selling=new_price)
             )
