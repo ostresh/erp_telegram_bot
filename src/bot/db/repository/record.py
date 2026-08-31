@@ -68,10 +68,10 @@ class RecordRepository(BaseRepository[Record]):
         
         try:
             stmt = (
-                select(Game.name, Record.price_purchase,Record.price_selling)
+                select(Game.name, Record.price_purchase, Record.price_selling)
                 .join(Game, Record.game_id == Game.id)
                 .where(Record.status == RecordStatus.AVAILABLE.value)
-                .group_by(Record.game_id, Game.name, Record.price_selling)
+                .group_by(Game.name, Record.price_purchase, Record.price_selling)
                 .order_by(Game.name)
             )
             result = await self.session.execute(stmt)
@@ -122,7 +122,7 @@ class RecordRepository(BaseRepository[Record]):
             if is_updated:      
                 logger.debug(f"Updated price for {count} records of game '{game_name}'")
             else:
-                logger.debug(f"Available {game_name} in records not found'")
+                logger.debug(f"Available {game_name} in records not found")
             return count
         except Exception:
             logger.debug(f"Error updating price for game '{game_name}'")
