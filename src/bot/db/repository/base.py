@@ -4,6 +4,10 @@ from typing import TypeVar, Generic, Type, Optional, List
 
 from bot.db.models import Base
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 ModelType = TypeVar("ModelType", bound=Base)
 
 class BaseRepository(Generic[ModelType]):
@@ -25,12 +29,23 @@ class BaseRepository(Generic[ModelType]):
             
         Return:
             Объект модели
+            
+        Raises:
+            Exception: При ошибке создания
         """
-    
-        await self.session.add(item)
-        await self.session.flush()
-        return item
-    
+
+        logger.debug(f'Creating {self.model.__name__}')
+
+        try:
+            await self.session.add(item)
+            await self.session.flush()
+            logger.debug(f'{self.model.__name__} created successfully')
+            return item
+        except Exception as e:
+            logger.debug(f'Error creating {self.model.__name__}: {e}')
+            raise
+            
+
     async def create_many(self, items: List[ModelType]) -> List[ModelType]:
         """
         Создать запись
@@ -40,11 +55,21 @@ class BaseRepository(Generic[ModelType]):
 
         Return:
             Список объектов модели
+            
+        Raises:
+            Exception: При ошибке создания
         """
         
-        await self.session.add_all(items)
-        await self.session.flush()
-        return items
+        logger.debug(f'Creating many {self.model.__name__}')
+        
+        try:
+            await self.session.add_all(items)
+            await self.session.flush()
+            logger.debug(f'{len(items)} {self.model.__name__} records created successfully')
+            return items
+        except Exception as e:
+            logger.debug(f'Error creating many {self.model.__name__}: {e}')
+            raise
     
     """
     READ
@@ -58,18 +83,30 @@ class BaseRepository(Generic[ModelType]):
         
         Return:
             Список объектов модели
+            
+        Raises:
+            Exception: При ошибке создания
         """
 
-        stmt = (
-            select(self.model)
-        )
-        if reverse:
-            stmt = stmt.order_by(self.model.id.desc())
-        else:
-            stmt = stmt.order_by(self.model.id.asc())
+        logger.debug(f"Getting all {self.model.__name__}")
+
+        try:
+            stmt = (
+                select(self.model)
+            )
+            if reverse:
+                stmt = stmt.order_by(self.model.id.desc())
+            else:
+                stmt = stmt.order_by(self.model.id.asc())
+                
+            result = await self.session.execute(stmt)
+            items = result.scalars().all()
             
-        result = await self.session.execute(stmt)
-        return result.scalars().all()
+            logger.debug(f"Retrieved {len(items)} {self.model.__name__}")
+            return items
+        except Exception as e:
+            logger.debug(f'Error getting all {self.model.__name__}: {e}')
+            raise
     
     async def get_by_id(self, item_id: int) -> Optional[ModelType]:
         """
@@ -79,15 +116,31 @@ class BaseRepository(Generic[ModelType]):
             item_id - id строки 
         
         Return:
-            Объект модели
+            Объект модели или None если не найдено
+            
+        Raises:
+            Exception: При ошибке создания
         """
 
-        stmt = (
-            select(self.model)
-            .where(self.model.id == item_id)
-        )
-        result = await self.session.execute(stmt)
-        return result.scalar()
+        logger.debug(f"Getting {self.model.__name__} by id={item_id}")
+
+        try:
+            stmt = (
+                select(self.model)
+                .where(self.model.id == item_id)
+            )
+            result = await self.session.execute(stmt)
+            item =  result.scalar()
+            
+            if item:
+                logger.debug(f"{self.model.__name__} with id={item_id} found")
+            else:
+                logger.debug(f"{self.model.__name__} with id={item_id} not found")
+            
+            return item
+        except Exception as e:
+            logger.debug(f'Error getting {self.model.__name__} by id {item_id}: {e}')
+            raise
     
     """
     UPDATE
@@ -102,16 +155,33 @@ class BaseRepository(Generic[ModelType]):
         
         Return:
             Объект модели
+            
+        Raises:
+            Exception: При ошибке создания
         """
-        stmt = (
-            update(self.model)
-            .where(self.model.id == item_id)
-            .values(**data)
-            .returning(self.model)
-        )
-        result = await self.session.execute(stmt)
-        await self.session.flush()
-        return result.scalar_one_or_none()
+        
+        logger.debug(f"Updating {self.model.__name__} with id={item_id}")
+        
+        try:
+            stmt = (
+                update(self.model)
+                .where(self.model.id == item_id)
+                .values(**data)
+                .returning(self.model)
+            )
+            result = await self.session.execute(stmt)
+            await self.session.flush()
+            item = result.scalar_one_or_none()
+            
+            if item:
+                logger.debug(f"{self.model.__name__} with id={item_id} updated")
+            else:
+                logger.debug(f"{self.model.__name__} with id={item_id} not found")
+            
+            return item
+        except Exception:
+            logger.debug(f"Error updating {self.model.__name__} with id={item_id}")
+            raise
     
     """
     DELETE
@@ -125,12 +195,29 @@ class BaseRepository(Generic[ModelType]):
         
         Return:
             bool удалилась ли строка
+            
+        Raises:
+            Exception: При ошибке создания
         """
-        stmt = (
-            delete(self.model)
-            .where(self.model.id == item_id)
+        logger.debug(f"Deleting {self.model.__name__} with id={item_id}")
+        
+        try:
+            stmt = (
+                delete(self.model)
+                .where(self.model.id == item_id)
             )
-        result = await self.session.execute(stmt)
-        await self.session.flush()
-        return result.rowcount > 0
+            result = await self.session.execute(stmt)
+            await self.session.flush()
+            
+            deleted = result.rowcount > 0
+            
+            if deleted:
+                logger.debug(f"{self.model.__name__} with id={item_id} deleted")
+            else:
+                logger.debug(f"{self.model.__name__} with id={item_id} not found")
+            
+            return deleted
+        except Exception:
+            logger.debug(f"Error deleting {self.model.__name__} with id={item_id}")
+            raise
     

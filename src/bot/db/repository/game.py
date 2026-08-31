@@ -4,6 +4,9 @@ from sqlalchemy import select, exists
 from bot.db.models import Game
 from bot.db.repository.base import BaseRepository
 
+import logging
+
+logger = logging.getLogger(__name__)
 
 class GameRepository(BaseRepository[Game]):
     """Репозиторий для Game. Наследует базовые CRUD, добавляет специфичные методы"""
@@ -21,8 +24,25 @@ class GameRepository(BaseRepository[Game]):
             
         Return:
             bool есть ли игра
+            
+        Raises:
+            Exception: При ошибке создания
         """
         
-        stmt = select(Game.id).where(Game.name == game_name).limit(1)
-        result = await self.session.execute(stmt)
-        return result.scalar_one_or_none() is not None
+        logger.debug(f"Checking if game '{game_name}' exists")
+        
+        try:
+            stmt = select(
+                exists(
+                    select(Game.name)
+                    .where(Game.name == game_name)
+                )
+            )
+            result = await self.session.execute(stmt)
+            exists_result = result.scalar()
+            
+            logger.debug(f"Game '{game_name}' exists: {exists_result}")
+            return exists_result
+        except Exception:
+            logger.debug(f"Error checking if game '{game_name}' exists")
+            raise
