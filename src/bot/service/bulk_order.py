@@ -1,4 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing import List
 
 from bot.db.repository import BulkOrderRepository
 from bot.db.models import BulkOrder
@@ -13,3 +14,23 @@ class BulkOrderService(BaseService[BulkOrder, BulkOrderRepository]):
     
     def __init__(self, session: AsyncSession):
         super().__init__(session, BulkOrderRepository(session))
+        
+    async def get_delivery_to_me(self) -> List[BulkOrder]:
+        """
+        Получение всех записей
+        Которые едут ко мне
+        
+        Return:
+            Список Record
+        
+        Raises:
+            Exception: При ошибке создания
+        """
+        
+        logger.info("Getting delivery to me bulk orders")
+                
+        try:
+            return await self.repo.get_delivery_to_me()
+        except Exception as e:
+            logger.exception(f"Error get delivery to me bulk orders: {e}")
+            raise

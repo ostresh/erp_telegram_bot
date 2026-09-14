@@ -88,3 +88,93 @@ class RecordService(BaseService[Record, RecordRepository]):
             logger.exception(f'Error for update price selling for {game_name}: {e}')
             raise
     
+    async def get_delivery_to_me(self) -> List[Record]:
+        """
+        Получение всех записей
+        Которые едут ко мне
+        
+        Return:
+            Список Record
+        
+        Raises:
+            Exception: При ошибке создания
+        """
+        
+        logger.info("Getting delivery to me records")
+        
+        try:
+            return await self.repo.get_delivery_to_me()
+        except Exception as e:
+            logger.exception(f"Error get delivery to me records: {e}")
+            raise
+        
+    async def get_delivery_to_client(self) -> List[Record]:
+        """
+        Получение всех записей
+        Которые едут к покупателю
+        
+        Return:
+            Список Record
+        
+        Raises:
+            Exception: При ошибке создания
+        """
+        
+        logger.info("Getting delivery to client records")
+        
+        try:
+            return await self.repo.get_delivery_to_client()
+        except Exception as e:
+            logger.exception(f"Error get delivery to client records: {e}")
+            raise
+        
+        
+    async def get_by_bulk_order_id(self, order_id: int) -> List[Record]:
+        """
+        Получение всех записей,
+        связанных с оптовым заказом
+        
+        Args:
+            order_id - id оптового заказа
+        
+        Return:
+            Список Record
+        
+        Raises:
+            Exception: При ошибке получения
+        """
+        
+        logger.info(f"Getting records for bulk order id={order_id}")
+                
+        try:
+            return await self.repo.get_by_bulk_order_id(order_id)
+        except Exception as e:
+            logger.exception(f"Error get records for bulk order id={order_id}: {e}")
+            raise
+    
+        
+    async def get_by_id_with_relations(self, item_id: int) -> Optional[Record]:
+        """
+        Получение записи по id с загруженными связями
+        (игра и транзакция) для полного вывода информации
+        
+        Args:
+            item_id - id записи
+        
+        Return:
+            Объект Record с загруженными связями или None
+        
+        Raises:
+            Exception: При ошибке получения
+        """
+        
+        logger.info(f"Getting Record by id={item_id} with relations")
+                        
+        try:
+            return await self.repo.get_by_id_with_relations(item_id)
+        except Exception as e:
+            logger.exception(f"Error getting Record by id={item_id} with relations: {e}")
+            raise
+            
+            
+    

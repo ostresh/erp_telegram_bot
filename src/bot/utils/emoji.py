@@ -21,7 +21,7 @@ class Emoji:
     ORDER_BULK = '📦'
     ORDER_BULK_DELIVERY_COST = '🚚💰'
     
-    EXPENCES='💸🔻'
+    EXPENSES='💸🔻'
     INCOMES='💰🔼'
     AVITO='🏬'
     REVENUE='📈💰'

@@ -4,8 +4,8 @@ class RecordStatus(str, Enum):
     """Статусы для Records"""
     AVAILABLE = "Да"
     SOLD = "Нет"
-    IN_TRANSIT_ME = "Едет ко мне"
-    IN_TRANSIT_CLIENT = "Едет к покупателю"
+    DELIVERY_TO_ME = "Едет ко мне"
+    DELIVERY_TO_CLIENT= "Едет к покупателю"
     
 class BulkOrderStatus(str, Enum):
     """Статусы оптовых заказов"""
