@@ -17,5 +17,10 @@ class Config:
     OWNER_ID = int(os.getenv('OWNER_ID', '0'))
     PROXY_URL = os.getenv('PROXY_URL')
     
+    INITIAL_BALANCE = int(os.getenv('INITIAL_BALANCE'))
+    REVENUE =int(os.getenv('REVENUE'))
+    DISCS_COUNT_SOLD = int(os.getenv('DISCS_COUNT_SOLD'))
+    ALL_ASSETS = int(os.getenv('ALL_ASSETS'))
+    
     
 config = Config()
