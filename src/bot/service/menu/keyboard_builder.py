@@ -1,11 +1,18 @@
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.enums.button_style import ButtonStyle
 
 from bot.service.menu.tree import MENU_INDEX
 from bot.app.callbacks.callbacks import MenuCB, HandlerCB
 from bot.app.messages.menu import MenuConstants
+from .schemas import MenuAction, MenuNode, ChildElement
+
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+MENU_STYLE = ButtonStyle.DANGER
+ACTION_STYLE = ButtonStyle.PRIMARY
 
 
 class KeyboardBuilder:
@@ -13,14 +20,11 @@ class KeyboardBuilder:
     Генератор inline-клавиатур для меню.
     
     Автоматически создаёт клавиатуру на основе узла дерева меню.
-    Порядок кнопок:
-    1. Действия (HandlerCB) — операции на текущем уровне
-    2. Дочерние меню (MenuCB) — навигация в подменю
-    3. Кнопка "Назад" — возврат к родителю (если есть)
+    Порядок кнопок определяется порядком в дереве.
     """
     
     @staticmethod
-    def build(path: str, row_width: int = 1) -> InlineKeyboardBuilder:
+    def build_menu(path: str) -> InlineKeyboardBuilder:
         """
         Генерирует клавиатуру для указанного пути меню.
         
@@ -41,25 +45,49 @@ class KeyboardBuilder:
             logger.warning(f"Unknown menu path: {path}")
             return builder
         
-        for action in node.actions:
-            handler_action = action.handler_action or action.key
-            builder.button(
-                title = action.title,
-                callback_data=HandlerCB(action=handler_action).pack()
-            )
-            
-        for child in node.children:
-            builder.button(
-                text=child.title,
-                callback_data=MenuCB(path=child.path, title=child.key).pack()
-            )
+        row_pattern = []
+        
+        for child in node.childrens:
+            if isinstance(child, list):
+                for item in child:
+                    KeyboardBuilder._add_button(builder, item)
+                row_pattern.append(len(child))
+            else:
+                KeyboardBuilder._add_button(builder, child)
+                row_pattern.append(1)
+             
             
         if node.parent_path:
             builder.button(
                 text=MenuConstants.BACK_TEXT,
-                callback_data=MenuCB(path=node.parent_path, title='back').pack()
+                callback_data=MenuCB(path=node.path, title='back').pack()
             )
             
-        builder.adjust(row_width)
+        if row_pattern:
+            builder.adjust(*row_pattern)
         
         return builder
+    
+    @staticmethod
+    def _add_button(builder: InlineKeyboardBuilder, item: ChildElement) -> None:
+        """
+        Добавляет кнопку в builder в зависимости от типа элемента.
+        
+        Args:
+            builder: InlineKeyboardBuilder
+            item: MenuNode или MenuAction
+        """
+        
+        if isinstance(item, MenuAction):
+            handler_action = item.handler_action or item.key
+            builder.button(
+                text = item.title,
+                callback_data=HandlerCB(action=handler_action).pack(),
+                style=ACTION_STYLE
+            )
+        elif isinstance(item, MenuNode):
+            builder.button(
+                text = f'{item.title}',
+                callback_data=MenuCB(path=item.path, title=item.key).pack(),
+                style=MENU_STYLE
+            )

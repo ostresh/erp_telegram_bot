@@ -46,18 +46,18 @@ class MessageFormatter:
         money = MessageFormatter.format_money
         
         formatters = {
-            'expenses':       lambda v: f"\n{Emoji.EXPENSES} <strong>РАСХОДЫ</strong> • <code>{money(v)}</code>р.\n",
-            'incomes':        lambda v: f"\n{Emoji.INCOMES} <strong>ДОХОДЫ</strong> • <code>{money(v)}</code>р.\n",
-            'revenue':        lambda v: f"\n{Emoji.REVENUE} <strong>ВЫРУЧКА</strong> • <code>{money(v)}</code>р.\n",
-            'net_profit':     lambda v: f"\n{Emoji.NET_PROFIT} <strong>ЧИСТАЯ ПРИБЫЛЬ</strong> • <code>{money(v)}</code>р.\n",
-            'avito_expenses': lambda v: f"\n{Emoji.AVITO} <strong>РАСХОДЫ АВИТО</strong> • <code>{money(v)}</code>р.\n",
-            'discs_count_sold': lambda v: f"\n{Emoji.DISCS_COUNT} <strong>ДИСКОВ ПРОДАНО</strong> • <code>{v}</code>\n",
-            'avg_revenue':    lambda v: f"\n{Emoji.AVG_REVENUE} <strong>СРЕДНЯЯ ВЫРУЧКА</strong> • <code>{money(v)}</code>р.\n",
-            'on_account':     lambda v: f"\n{Emoji.ON_ACCOUNT} <strong>НА СЧЕТУ</strong> • <code>{money(v)}</code>р.\n",
-            'discs_count':    lambda v: f"\n{Emoji.DISCS_COUNT} <strong>ДИСКОВ В НАЛИЧИИ</strong> • <code>{v}</code>\n",
-            'on_way':         lambda v: f"\n{Emoji.ON_WAY} <strong>ЕДЕТ К ПОКУПАТЕЛЮ</strong> • <code>{money(v)}</code>р.\n",
-            'on_way_count':   lambda v: f"\n{Emoji.ON_WAY} <strong>ЕДЕТ К ПОКУПАТЕЛЮ (ШТ.)</strong> • <code>{v}</code>\n",
-            'all_assets':     lambda v: f"\n{Emoji.ALL_ASSETS} <strong>ВСЕ АКТИВЫ</strong> • <code>{money(v)}</code>р.\n",
+            'expenses':       lambda v: f"{Emoji.EXPENSES} <strong>РАСХОДЫ</strong> • <code>{money(v)}</code>р.\n",
+            'incomes':        lambda v: f"{Emoji.INCOMES} <strong>ДОХОДЫ</strong> • <code>{money(v)}</code>р.\n",
+            'revenue':        lambda v: f"{Emoji.REVENUE} <strong>ВЫРУЧКА</strong> • <code>{money(v)}</code>р.\n",
+            'net_profit':     lambda v: f"{Emoji.NET_PROFIT} <strong>ЧИСТАЯ ПРИБЫЛЬ</strong> • <code>{money(v)}</code>р.\n",
+            'avito_expenses': lambda v: f"{Emoji.AVITO} <strong>РАСХОДЫ АВИТО</strong> • <code>{money(v)}</code>р.\n",
+            'discs_count_sold': lambda v: f"{Emoji.DISCS_COUNT} <strong>ДИСКОВ ПРОДАНО</strong> • <code>{v}</code>\n",
+            'avg_revenue':    lambda v: f"{Emoji.AVG_REVENUE} <strong>СРЕДНЯЯ ВЫРУЧКА</strong> • <code>{money(v)}</code>р.\n",
+            'on_account':     lambda v: f"{Emoji.ON_ACCOUNT} <strong>НА СЧЕТУ</strong> • <code>{money(v)}</code>р.\n",
+            'discs_count':    lambda v: f"{Emoji.DISCS_COUNT} <strong>ДИСКОВ В НАЛИЧИИ</strong> • <code>{v}</code>\n",
+            'on_way':         lambda v: f"{Emoji.ON_WAY} <strong>ЕДЕТ К ПОКУПАТЕЛЮ</strong> • <code>{money(v)}</code>р.\n",
+            'on_way_count':   lambda v: f"{Emoji.ON_WAY} <strong>ЕДЕТ К ПОКУПАТЕЛЮ (ШТ.)</strong> • <code>{v}</code>\n",
+            'all_assets':     lambda v: f"{Emoji.ALL_ASSETS} <strong>ВСЕ АКТИВЫ</strong> • <code>{money(v)}</code>р.\n",
         }
         
         # Если поля не указаны — выводим все

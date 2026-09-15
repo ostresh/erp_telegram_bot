@@ -5,3 +5,4 @@ db.sqlite3
 .env
 data/
 src/playground
+src/bot/service/menu/nav_menu.md

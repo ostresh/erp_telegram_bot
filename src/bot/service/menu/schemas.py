@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Union, Optional
 
 from aiogram.types import InlineKeyboardMarkup
 
@@ -23,20 +23,39 @@ class MenuAction:
     handler_action: str | None = None  # Если None, используется key
 
 
+# Тип для одного дочернего элемента
+ChildElement = Union['MenuNode', MenuAction]
+
+# Тип для списка дочерних элементов (с поддержкой группировки через вложенные списки)
+ChildrensList = List[Union[ChildElement, List[ChildElement]]]
+
+
 @dataclass
 class MenuNode:
     """
     Узел дерева меню.
     
-    Содержит как дочерние меню (навигация),
-    так и действия (операции на этом уровне).
+    Содержит дочерние элементы (подменю и действия) в едином списке childrens.
+    Порядок элементов в списке определяет порядок кнопок в клавиатуре.
+    
+    Группировка кнопок в ряды задаётся вложенными списками:
+    - Одиночный элемент (например, `MenuAction(...)`) → 1 кнопка в ряд.
+    - Список элементов (например, `[MenuAction(...), MenuAction(...)]`) → все кнопки в одном ряду.
+    
+    Пример:
+        childrens=[
+            [MenuAction1, MenuAction2],  # 2 кнопки в ряд
+            MenuAction3,                  # 1 кнопка в ряд
+            [MenuAction4, MenuAction5, MenuAction6],  # 3 кнопки в ряд
+        ]
+    
+    Это создаст клавиатуру с рядами: [2, 1, 3]
     
     Attributes:
         key: Короткий идентификатор узла
         title: Отображаемое название
-        children: Дочерние меню (MenuCB)
-        actions: Действия на этом уровне (HandlerCB)
-        with_finances: Добавлять ли финансы к тексту
+        childrens: Список дочерних элементов (с группировкой через вложенные списки)
+        finance_fields: Поля финансового отчёта для этого меню
         
         path: Полный путь (заполняется автоматически)
         parent_path: Путь родителя (заполняется автоматически)
@@ -44,13 +63,12 @@ class MenuNode:
     """
     key: str
     title: str
-    children: list['MenuNode'] = field(default_factory=list)
-    actions: list['MenuAction'] = field(default_factory=list)
+    childrens: ChildrensList = field(default_factory=list)
     finance_fields: List[str] = field(default_factory=list)
     
     # Заполняется автоматически:
     path: str = ''
-    parent_path: str | None = None
+    parent_path: Optional[str] = None
     crumbs: list[str] = field(default_factory=list)
 
 

@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from bot.service.menu.schemas import MenuConfig
 from bot.service.menu.tree import MENU_INDEX
 from bot.service.menu.keyboard_builder import KeyboardBuilder
+from bot.app.messages.menu import MenuConstants
 from bot.utils.formatter import MessageFormatter
 from bot.service.finance import FinanceService
 import logging
@@ -101,33 +102,33 @@ class MenuService:
             ValueError: Если путь не найден в дереве меню
         """
         
-        logger.info(f"Building menu for path: {path}")
-        
+        logger.debug(f"Building menu for path: {path}")
+    
         node = MENU_INDEX.get(path)
         if not node:
             logger.warning(f"Unknown menu path: {path}")
             raise ValueError(f"Unknown menu path: {path}")
         
-        # генерируем клавиатуру
-        keyboard = KeyboardBuilder.build(node.path).as_markup()
+        # Генерируем клавиатуру
+        keyboard = KeyboardBuilder.build_menu(node.path).as_markup()
         
-        # генерируем текст хлебных крошек
-        breadcrumbs_text = self._build_breadcrumbs_text(node.crumbs)
+        # Генерируем текст хлебных крошек
+        text = self._build_breadcrumbs_text(node.crumbs)
         
+        # Если у узла указаны финансовые поля — добавляем финансовую информацию
         if node.finance_fields:
             finance_text = await self._get_finances(node.finance_fields)
-            
-        text = (
-            breadcrumbs_text + '\n'
-            + finance_text or '' + '\n'
-            + '\n'
-        )
+            if finance_text:
+                text = finance_text + '\n\n' + text
+        
+        # Добавляем стандартное окончание
+        text = text + '\n\n' + MenuConstants.ADDON_TEXT
         
         return MenuConfig(
-            path = node.path,
-            keyboard = keyboard,
-            parent = node.parent_path,
-            text=text
+            path=node.path,
+            keyboard=keyboard,
+            parent=node.parent_path,
+            text=text,
         )
         
     async def get_back_menu(self, path: str) -> MenuConfig:
@@ -145,6 +146,7 @@ class MenuService:
         logger.debug(f"Building back menu for path: {path}")
         
         node = MENU_INDEX.get(path)
+        
         if not node or not node.parent_path:
             return await self.get_menu('main')
         

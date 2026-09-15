@@ -1,64 +1,48 @@
+"""
+Названия действий для кнопок и сообщений.
+
+Используются в хендлерах для отображения действий пользователя.
+"""
 
 
 class ActionLabel:
-    """
-    Названия действий для кнопок и сообщений.
-
-    Используются в хендлерах для отображения действий пользователя.
-    """
-
+    """Названия действий"""
     
-    # Записи
+    # Товары
     BUY = "🔻 ПОКУПКА"
     SELL = "🔼 ПРОДАЖА"
-    ARRIVED = "✅ ЗАКАЗ ПОЛУЧЕН"
+    ORDER_ARRIVED = "✅ ПОЛУЧЕНИЕ ЗАКАЗА"
     SWAP = "🔄 ОБМЕН"
     RESERVE = "🎫 БРОНЬ"
+    CHANGE_SELLING_PRICE = "💵 ИЗМЕНИТЬ ЦЕНУ ПРОДАЖИ"
+    ADD_TRNS = "➕ ДОБАВИТЬ ТРАНЗАКЦИЮ"
+    
+    # Склад и доставка
+    DELIVERY_TO_ME = "🚚 КО МНЕ"
+    DELIVERY_TO_CLIENT = "🚚 К КЛИЕНТАМ"
+    AVAILABLE = "💿 НАЛИЧИЕ НА СКЛАДЕ"
+    
+    # Управление записями
+    CHANGE_ROW_BY_ID = "🔧 РЕДАКТИРОВАТЬ ЗАПИСЬ"
+    DELETE_ROW_BY_ID = "❌ УДАЛИТЬ ЗАПИСЬ"
     
     # Оптовые заказы
-    NEW_BULK_ORDER = "🆕 СОЗДАТЬ ЗАКАЗ"
-    ADD_DELIVERY_BULK_ORDER = "🚚💰 ДОБАВИТЬ ДОСТАВКУ"
-    BULK_ORDER_ARRIVED = "✅ ЗАКАЗ ПРИЕХАЛ"
-    DELETE_BULK_ORDER_BY_ID = "❌ УДАЛИТЬ ЗАКАЗ ПО ID"
+    NEW_BULK_ORDER = "🆕 СОЗДАТЬ ОПТОВЫЙ ЗАКАЗ"
+    ADD_DELIVERY_TO_BULK_ORDER = "🚚 ДОБАВИТЬ ДОСТАВКУ К ЗАКАЗУ"
+    BULK_ORDER_ARRIVED = "✅ ОТМЕТИТЬ ПРИБЫТИЕ ЗАКАЗА"
+    BULK_ORDERS_COME_TO_ME = "🚚 В ПУТИ КО МНЕ"
+    BULK_ORDER_BY_ID = "📦 ПОИСК ПО ID"
+    ALL_BULK_ORDERS = "🗃️ ВСЕ ЗАКАЗЫ"
+    DELETE_BULK_ORDER = "❌ УДАЛИТЬ ЗАКАЗ"
     
-    # Уведомления
-    GENERAL_NOTICE = "🔹 ОБЩЕЕ"
-    PERSONAL_NOTICE = "🔑 ЧАСТНОЕ"
-    FOR_NEW_NOTICE = "🆕 ДЛЯ НОВЫХ"
-    FOR_USED_NOTICE = "♻️ ДЛЯ Б/У"
-    CHANGE_PERSONAL_TAG = "🔧 ИЗМЕНИТЬ ЧАСТНЫЙ ТЭГ"
-    CHANGE_BASE_FOR_NOTICE = "🔧 ИЗМЕНИТЬ БАЗУ"
-    HEADER_NOTICE = "🎩📋 ШАПКА ДЛЯ ОПИСАНИЯ"
-    BASE_TAGS_NOTICE = "📝 БАЗОВЫЕ ТЕГИ"
-    BASE_PERSONAL = "🔑 БАЗА ЧАСТНОГО ОПИСАНИЯ"
+    # Отчёты
+    FULL_FINANCE_REPORT = "📊 ПОЛНЫЙ ФИНАНСОВЫЙ ОТЧЁТ"
+    PRODUCT_REPORT_PERIOD = "📊 ТОВАРНЫЙ ОТЧЕТ ЗА ПЕРИОД"
     
-    # Сервис
-    CHANGE_ROW_BY_ID = "🔧 ИЗМЕНИТЬ СТРОКУ ПО ID"
-    DELETE_ROW_BY_ID = "❌ УДАЛИТЬ СТРОКУ ПО ID"
-    UPDATE_PRICE_FOR_SPECIFIC_GAMES = "🛠️ УСТАНОВИТЬ ОДНУ ЦЕНУ ИГРАМ"
-    ADD_GAME_IN_GAMES_LIST = "🆕 ДОБАВИТЬ ИГРУ В СПИСОК"
-    DELETE_GAME_FROM_GAMES_LIST = "❌ УДАЛИТЬ ИГРУ ИЗ СПИСКА"
+    # Каталог игр
+    ADD_GAME = "🆕 ДОБАВИТЬ ИГРУ"
+    DELETE_GAME = "❌ УДАЛИТЬ ИГРУ"
     
-    # Доставка
-    LOCAL = "📍 ЛОКАЛЬНО"
-    DELIVERY = "🚚 С ДОСТАВКОЙ"
-    
-    # Финансы
-    ALL_FINANCES = "📊 ВСЕ ФИНАНСЫ"
-    
-    # Транзакции
-    ADD_TRNS = '📝 Добавить транзакцию'
-    
-    # Третий уровень: main-info-records
-    COME_TO_ME = "🚚👤 КО МНЕ"
-    COME_TO_CLIENT = "🚚👥 К КЛИЕНТАМ"
-    INTERVAL = "🔢 ЗАПИСИ ПО ИНТЕРВАЛУ"
-    
-    # Третий уровень: main-info-bulk_order
-    BULK_ORDER_BY_ID = "📦 ЗАКАЗ ПО ID"
-    ALL_BULK_ORDERS = "🗃️ ВСЕ ОПТОВЫЕ ЗАКАЗЫ"
-    
-    # Третий уровень: main-info-available
-    AVAILABLE_FOR_ME = "🔒 ДЛЯ МЕНЯ"
-    AVAILABLE_FOR_CLIENT = "👥 ДЛЯ КЛИЕНТА"
-    AVAILABLE_BY_RECORDS = "🆔 НАЛИЧИЕ ПО ЗАПИСЯМ"
+    # Описание объявления
+    VIEW_DESCRIPTION = "📝 ПРОСМОТРЕТЬ ОПИСАНИЕ"
+    CHANGE_PERSONAL_TAGS = "🔧 ИЗМЕНИТЬ ОПИСАНИЕ ОБЪЯВЛЕНИЯ"
