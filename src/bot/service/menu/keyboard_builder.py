@@ -15,7 +15,7 @@ MENU_STYLE = ButtonStyle.DANGER
 ACTION_STYLE = ButtonStyle.PRIMARY
 
 
-class KeyboardBuilder:
+class MenuKeyboardBuilder:
     """
     Генератор inline-клавиатур для меню.
     
@@ -24,7 +24,7 @@ class KeyboardBuilder:
     """
     
     @staticmethod
-    def build_menu(path: str) -> InlineKeyboardBuilder:
+    def build(path: str) -> InlineKeyboardBuilder:
         """
         Генерирует клавиатуру для указанного пути меню.
         
@@ -50,10 +50,10 @@ class KeyboardBuilder:
         for child in node.childrens:
             if isinstance(child, list):
                 for item in child:
-                    KeyboardBuilder._add_button(builder, item)
+                    MenuKeyboardBuilder._add_button(builder, item)
                 row_pattern.append(len(child))
             else:
-                KeyboardBuilder._add_button(builder, child)
+                MenuKeyboardBuilder._add_button(builder, child)
                 row_pattern.append(1)
              
             
@@ -66,7 +66,7 @@ class KeyboardBuilder:
         if row_pattern:
             builder.adjust(*row_pattern)
         
-        return builder
+        return builder.as_markup()
     
     @staticmethod
     def _add_button(builder: InlineKeyboardBuilder, item: ChildElement) -> None:

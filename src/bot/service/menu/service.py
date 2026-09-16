@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.service.menu.schemas import MenuConfig
 from bot.service.menu.tree import MENU_INDEX
-from bot.service.menu.keyboard_builder import KeyboardBuilder
+from bot.service.menu.keyboard_builder import MenuKeyboardBuilder
 from bot.app.messages.menu import MenuConstants
 from bot.utils.formatter import MessageFormatter
 from bot.service.finance import FinanceService
@@ -110,7 +110,7 @@ class MenuService:
             raise ValueError(f"Unknown menu path: {path}")
         
         # Генерируем клавиатуру
-        keyboard = KeyboardBuilder.build_menu(node.path).as_markup()
+        keyboard = MenuKeyboardBuilder.build(node.path)
         
         # Генерируем текст хлебных крошек
         text = self._build_breadcrumbs_text(node.crumbs)
