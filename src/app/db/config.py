@@ -32,3 +32,8 @@ def get_uow():
     """
     from app.db.unit_of_work import UnitOfWork
     return UnitOfWork(session_factory=AsyncSessionLocal)
+
+
+async def close_db():
+    """Закрытие соединений с БД"""
+    await engine.dispose()
