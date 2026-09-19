@@ -18,8 +18,8 @@ class ActionLabel:
     ADD_TRNS = "➕ ДОБАВИТЬ ТРАНЗАКЦИЮ"
     
     # Склад и доставка
-    DELIVERY_TO_ME = "🚚 КО МНЕ"
-    DELIVERY_TO_CLIENT = "🚚 К КЛИЕНТАМ"
+    IN_TRANSIT_TO_ME = "🚚 КО МНЕ"
+    IN_TRANSIT_TO_CLIENT = "🚚 К КЛИЕНТАМ"
     AVAILABLE = "💿 НАЛИЧИЕ НА СКЛАДЕ"
     
     # Управление записями

@@ -15,3 +15,4 @@ class MenuConstants:
     # Навигация
     BACK_TEXT = "← Назад"
     ADDON_TEXT = "🗂️ Выберите нужный раздел в списке"
+    CLOSE_TEXT = "❌ Закрыть"

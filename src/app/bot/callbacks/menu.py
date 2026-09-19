@@ -4,6 +4,3 @@ class MenuCB(CallbackData, prefix = 'menu'):
     path: str
     title: str
     
-class HandlerCB(CallbackData, prefix = 'handler'):
-    action: str
-    

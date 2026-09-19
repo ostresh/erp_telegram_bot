@@ -1,6 +1,6 @@
 from aiogram import Router
 from aiogram.types import CallbackQuery
-from app.bot.callbacks.callbacks import MenuCB
+from app.bot.callbacks.menu import MenuCB
 from app.db.unit_of_work import UnitOfWork
 from app.service.menu.service import MenuService
 import logging
