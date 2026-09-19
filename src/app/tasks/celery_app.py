@@ -24,7 +24,7 @@ celery_app.conf.update(
 celery_app.conf.beat_schedule = {
     'cleanup-expired-messages': {
         'task': 'app.tasks.cleanup.cleanup_expired_messages',
-        'schedule': 20
+        'schedule': crontab(minute=0)
     },
 }
 
@@ -40,7 +40,7 @@ def on_worker_shutdown(**kwargs):
         # Закрываем Bot
         loop.run_until_complete(close_bot())
         
-        # ✅ Закрываем Celery движок
+        # Закрываем Celery движок
         loop.run_until_complete(celery_engine.dispose())
     finally:
         loop.close()

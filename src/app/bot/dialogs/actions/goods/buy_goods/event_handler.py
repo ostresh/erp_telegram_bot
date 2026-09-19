@@ -120,21 +120,15 @@ class BuyGoodsEventHandler:
         
         await message.delete()
         
-        await message.bot.delete_message(
+        message_to_delete = await message.bot.edit_message_text(
+            text=formatted_record,
             message_id=bot_message_id,
             chat_id=message.chat.id
         )
         
-        from aiogram_dialog import ShowMode
-        await manager.done(show_mode=ShowMode.NO_UPDATE)
-        await manager.close_manager()
-        
-        message_to_delete = await message.answer(
-            text=formatted_record
-        )
-        
         await schedule_message_for_deletion(message_to_delete, uow)
         
+        await manager.done()
         
         await message.answer(
             text = main_menu.text,

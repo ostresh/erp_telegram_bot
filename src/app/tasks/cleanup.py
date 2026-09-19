@@ -19,7 +19,7 @@ def cleanup_expired_messages(self):
     logger.info("Starting cleanup_expired_messages task")
     
     try:
-        # ✅ Создаём новый loop для каждой задачи
+        
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         

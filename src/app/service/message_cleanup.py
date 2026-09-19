@@ -105,7 +105,7 @@ class MessageCleanupService(BaseService[MessageToDelete, MessageToDeleteReposito
         by_chat: dict[int, List[int]] = {}
         
         for message in messages:
-            by_chat.setdefault(message.chat_id, []).append(message.id)
+            by_chat.setdefault(message.chat_id, []).append(message.message_id)
             
         return by_chat
     
