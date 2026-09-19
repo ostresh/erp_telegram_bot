@@ -70,3 +70,27 @@ class UnitOfWork:
         finally:
             await session.close()
             logger.debug("Database session closed")
+            
+
+class CeleryUnitOfWork:
+    """
+    Unit of Work для Celery задач.
+    
+    Использует NullPool чтобы избежать проблем с event loop.
+    Каждый вызов задачи создаёт свежую сессию без пула.
+    """
+    
+    def __init__(self):
+        from app.db.config import CelerySessionLocal
+        self.session_factory = CelerySessionLocal
+    
+    async def __aenter__(self):
+        self.session = self.session_factory()
+        return self.session
+    
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if exc_type is not None:
+            await self.session.rollback()
+        else:
+            await self.session.commit()
+        await self.session.close()

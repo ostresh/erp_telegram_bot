@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy import select
 
 from app.db.models import BulkOrder
-from app.db.status import BulkOrderStatus
+from app.db.statuses import BulkOrderStatus
 from app.db.repository.base import BaseRepository
 
 
@@ -26,7 +26,7 @@ class BulkOrderRepository(BaseRepository[BulkOrder]):
             Список BulkOrder
         
         Raises:
-            Exception: При ошибке создания
+            Exception: При ошибке чтения
         """
         
         logger.debug("Getting dilevery to me bulk orders")
@@ -45,5 +45,5 @@ class BulkOrderRepository(BaseRepository[BulkOrder]):
             logger.debug(f"Retrieved {len(bulk_orders)} delivery to me bulk orders")
             return bulk_orders
         except Exception as e:
-            logger.debug(f"Error getting delivery to me bulk orders {e}")
+            logger.exception(f"Error getting delivery to me bulk orders {e}")
             raise

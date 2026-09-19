@@ -37,12 +37,12 @@ class BaseRepository(Generic[ModelType]):
         logger.debug(f'Creating {self.model.__name__}')
 
         try:
-            await self.session.add(item)
+            self.session.add(item)
             await self.session.flush()
             logger.debug(f'{self.model.__name__} created successfully')
             return item
         except Exception as e:
-            logger.debug(f'Error creating {self.model.__name__}: {e}')
+            logger.exception(f'Error creating {self.model.__name__}: {e}')
             raise
             
 
@@ -63,12 +63,12 @@ class BaseRepository(Generic[ModelType]):
         logger.debug(f'Creating many {self.model.__name__}')
         
         try:
-            await self.session.add_all(items)
+            self.session.add_all(items)
             await self.session.flush()
             logger.debug(f'{len(items)} {self.model.__name__} records created successfully')
             return items
         except Exception as e:
-            logger.debug(f'Error creating many {self.model.__name__}: {e}')
+            logger.exception(f'Error creating many {self.model.__name__}: {e}')
             raise
     
     """
@@ -85,7 +85,7 @@ class BaseRepository(Generic[ModelType]):
             Список объектов модели
             
         Raises:
-            Exception: При ошибке создания
+            Exception: При ошибке чтения
         """
 
         logger.debug(f"Getting all {self.model.__name__}")
@@ -105,7 +105,7 @@ class BaseRepository(Generic[ModelType]):
             logger.debug(f"Retrieved {len(items)} {self.model.__name__}")
             return items
         except Exception as e:
-            logger.debug(f'Error getting all {self.model.__name__}: {e}')
+            logger.exception(f'Error getting all {self.model.__name__}: {e}')
             raise
     
     async def get_by_id(self, item_id: int) -> Optional[ModelType]:
@@ -119,7 +119,7 @@ class BaseRepository(Generic[ModelType]):
             Объект модели или None если не найдено
             
         Raises:
-            Exception: При ошибке создания
+            Exception: При ошибке чтения
         """
 
         logger.debug(f"Getting {self.model.__name__} by id={item_id}")
@@ -139,7 +139,7 @@ class BaseRepository(Generic[ModelType]):
             
             return item
         except Exception as e:
-            logger.debug(f'Error getting {self.model.__name__} by id {item_id}: {e}')
+            logger.exception(f'Error getting {self.model.__name__} by id {item_id}: {e}')
             raise
     
     """
@@ -157,7 +157,7 @@ class BaseRepository(Generic[ModelType]):
             Объект модели
             
         Raises:
-            Exception: При ошибке создания
+            Exception: При ошибке обновления
         """
         
         logger.debug(f"Updating {self.model.__name__} with id={item_id}")
@@ -179,8 +179,8 @@ class BaseRepository(Generic[ModelType]):
                 logger.debug(f"{self.model.__name__} with id={item_id} not found")
             
             return item
-        except Exception:
-            logger.debug(f"Error updating {self.model.__name__} with id={item_id}")
+        except Exception as e:
+            logger.exception(f"Error updating {self.model.__name__}: {e}")
             raise
     
     """
@@ -197,7 +197,7 @@ class BaseRepository(Generic[ModelType]):
             bool удалилась ли строка
             
         Raises:
-            Exception: При ошибке создания
+            Exception: При ошибке удаления
         """
         logger.debug(f"Deleting {self.model.__name__} with id={item_id}")
         
@@ -217,7 +217,7 @@ class BaseRepository(Generic[ModelType]):
                 logger.debug(f"{self.model.__name__} with id={item_id} not found")
             
             return deleted
-        except Exception:
-            logger.debug(f"Error deleting {self.model.__name__} with id={item_id}")
+        except Exception as e:
+            logger.exception(f"Error deleting {self.model.__name__} with id={item_id}: {e}")
             raise
     

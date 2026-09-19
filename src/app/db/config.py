@@ -1,4 +1,6 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from sqlalchemy.pool import NullPool
+
 from config import config
 
 
@@ -23,6 +25,19 @@ AsyncSessionLocal = async_sessionmaker(
     autoflush=False,
 )
 
+celery_engine = create_async_engine(
+    DATABASE_URL,
+    echo=False,
+    poolclass=NullPool,  # ← Без пула!
+    pool_pre_ping=True,
+)
+
+CelerySessionLocal = async_sessionmaker(
+    bind=celery_engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+)
+
 def get_uow():
     """
     Фабричная функция для создания UnitOfWork.
@@ -37,3 +52,4 @@ def get_uow():
 async def close_db():
     """Закрытие соединений с БД"""
     await engine.dispose()
+    await celery_engine.dispose()

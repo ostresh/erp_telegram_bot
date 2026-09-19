@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from typing import Optional, List
-from sqlalchemy import String, Integer, Text, DateTime, ForeignKey
+from sqlalchemy import String, Integer, Text, DateTime, ForeignKey, BigInteger
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, validates
 
 from app.db.statuses import RecordStatus
@@ -184,6 +184,10 @@ class Record(Base):
         """Вычисляет прибыль"""
         if self.price_sold is not None and self.price_purchase is not None:
             return self.price_sold - self.price_purchase
+        elif self.price_sold is not None and self.price_purchase is None:
+            return self.price_sold
+        elif self.price_sold is None and self.price_purchase is not None:
+            return 0 - self.price_purchase
         return None
 
     def __repr__(self) -> str:
@@ -249,3 +253,56 @@ class BulkOrder(Base):
 
     def __repr__(self) -> str:
         return f"<BulkOrder(id={self.id}, seller='{self.seller}', status='{self.order_status}')>"
+    
+    
+class MessageToDelete(Base):
+    """
+    Сообщения бота, запланированные к удалению.
+    
+    Хранит информацию о сообщениях-результатах, которые должны быть удалены через определённое время.
+    Используется для поддержания чистоты чата.
+    
+    Attributes:
+        id (int, auto): Уникальный идентификатор
+        chat_id (int, required): ID чата, где находится сообщение
+        message_id (int, required): ID сообщения бота
+        user_id (int, required): ID пользователя, для которого показано сообщение
+        created_at (datetime, auto): Дата планирования удаления
+    """
+    
+    __tablename__ = 'message_to_delete'
+    
+    id: Mapped[int] = mapped_column(
+        BigInteger,
+        primary_key=True,
+        autoincrement=True,
+    )
+    
+    chat_id: Mapped[int] = mapped_column(
+        BigInteger,
+        index=True,
+        nullable=False
+    )
+    
+    message_id: Mapped[int] = mapped_column(
+        BigInteger,
+        nullable=False
+    )
+    
+    user_id: Mapped[int] = mapped_column(
+        BigInteger,
+        index=True,
+        nullable=False
+    )
+    
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False
+    )
+    
+    def __repr__(self) -> str:
+        return (
+            f"<MessageToDelete(id={self.id}, chat_id={self.chat_id}, "
+            f"message_id={self.message_id}, user_id={self.user_id})>"
+        )
