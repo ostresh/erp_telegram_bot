@@ -1,5 +1,6 @@
 from app.service.menu.schemas import MenuNode, MenuAction
 from app.bot.messages.menu import MenuTitle, ActionLabel
+from .build_index import MenuBuildIndex
 
 
 MENU_TREE = MenuNode(
@@ -13,7 +14,7 @@ MENU_TREE = MenuNode(
             title=MenuTitle.GOODS,
             childrens=[
                 [
-                    MenuAction(key='buy', title=ActionLabel.BUY, handler_action='buy'),
+                    MenuAction(key='buy', title=ActionLabel.BUY, handler_action='buy-goods'),
                     MenuAction(key='sell', title=ActionLabel.SELL, handler_action='sell')
                 ],
                 MenuAction(key='order_arrived', title=ActionLabel.ORDER_ARRIVED, handler_action='order_arrived'),
@@ -26,12 +27,12 @@ MENU_TREE = MenuNode(
                 
                 # main-goods-warehouse_delivery
                 MenuNode(
-                    key='warehouse_delivery',
+                    key='goods_delivery',
                     title=MenuTitle.WAREHOUSE_DELIVERY,
                     childrens=[
                         [
-                            MenuAction(key='delivery_to_me', title=ActionLabel.DELIVERY_TO_ME, handler_action='delivery_to_me'),
-                            MenuAction(key='delivery_to_client', title=ActionLabel.DELIVERY_TO_CLIENT, handler_action='delivery_to_client')
+                            MenuAction(key='to_me', title=ActionLabel.IN_TRANSIT_TO_ME, handler_action='goods_to_me'),
+                            MenuAction(key='to_client', title=ActionLabel.IN_TRANSIT_TO_CLIENT, handler_action='goods_to_client')
                         ],
                         MenuAction(key='available', title=ActionLabel.AVAILABLE, handler_action='available'),
                     ]
@@ -132,35 +133,4 @@ MENU_TREE = MenuNode(
 )
 
 
-def build_index(
-    node: MenuNode,
-    parent_path: str | None = None,
-    parent_crumbs: list[str] | None = None,
-) -> dict[str, MenuNode]:
-    """
-    Рекурсивно обходит дерево и собирает индекс.
-    
-    Обрабатывает только MenuNode (MenuAction пропускаются, так как они не имеют детей).
-    
-    Args:
-        node: Текущий узел дерева
-        parent_path: Путь родительского узла
-        parent_crumbs: Хлебные крошки родителя
-        
-    Returns:
-        Словарь {path: MenuNode} для всех узлов дерева
-    """
-    node.path = node.key if not parent_path else f'{parent_path}-{node.key}'
-    node.parent_path = parent_path
-    node.crumbs = (parent_crumbs or []) + [node.title]
-    
-    index = {node.path: node}
-    
-    for child in node.childrens:
-        if isinstance(child, MenuNode):
-            index.update(build_index(child, node.path, node.crumbs))
-    
-    return index
-
-
-MENU_INDEX: dict[str, MenuNode] = build_index(MENU_TREE)
+MENU_INDEX: dict[str, MenuNode] = MenuBuildIndex.build_index(MENU_TREE)

@@ -5,6 +5,8 @@ load_dotenv()
 
 class Config:
     
+    ENVIRONMENT: str = os.getenv('ENVIRONMENT')
+    
     DB_CONFIG = {
         "host": os.getenv("DB_HOST"),
         "port": int(os.getenv("DB_PORT")),
@@ -21,6 +23,18 @@ class Config:
     REVENUE =int(os.getenv('REVENUE'))
     DISCS_COUNT_SOLD = int(os.getenv('DISCS_COUNT_SOLD'))
     ALL_ASSETS = int(os.getenv('ALL_ASSETS'))
+    
+    CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL')
+    CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND')
+    
+    @property
+    def is_production(self) -> bool:
+        return self.ENVIRONMENT.lower() == "production"
+    
+    @property
+    def is_development(self) -> bool:
+        return self.ENVIRONMENT.lower() == "development"
+    
     
     
 config = Config()

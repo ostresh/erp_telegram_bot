@@ -16,11 +16,20 @@ class MenuAction:
     Attributes:
         key: Короткий идентификатор действия (buy, sell, reserve)
         title: Отображаемое название с эмодзи
-        handler_action: Значение для HandlerCB(action=...)
+        handler_action: Значение для ActionCB(action=...)
+        
+        path: Полный путь (заполняется автоматически)
+        parent_path: Путь родителя (заполняется автоматически)
+        crumbs: Хлебные крошки (заполняется автоматически)
     """
     key: str
     title: str
     handler_action: str | None = None  # Если None, используется key
+    
+    # Заполняется автоматически:
+    path: str = ''
+    parent_path: Optional[str] = None
+    crumbs: list[str] = field(default_factory=list)
 
 
 # Тип для одного дочернего элемента

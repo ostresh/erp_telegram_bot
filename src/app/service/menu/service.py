@@ -6,7 +6,7 @@ from app.service.menu.schemas import MenuConfig
 from app.service.menu.tree import MENU_INDEX
 from app.service.menu.keyboard_builder import MenuKeyboardBuilder
 from app.bot.messages.menu import MenuConstants
-from app.utils.formatter import MessageFormatter
+from app.bot.utils.formatter import MessageFormatter
 from app.service.finance import FinanceService
 import logging
 
@@ -151,3 +151,23 @@ class MenuService:
             return await self.get_menu('main')
         
         return await self.get_menu(node.parent_path)
+    
+    
+    def build_breadcrumbs_text_from_path(self, path: str) -> List[str]:
+        """
+        Собирает текст хлебных крошек из списка заголовков
+        Принимая путь текущего меню
+                
+        Первый заголовок выводится без стрелки,
+        остальные — со стрелкой '→'.
+        
+        Args:
+            path: Текущий путь меню
+            
+        Returns:
+            Список хлебных крошек
+        """
+        
+        return self._build_breadcrumbs_text(MENU_INDEX.get(path).crumbs)
+        
+        

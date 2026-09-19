@@ -2,7 +2,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.enums.button_style import ButtonStyle
 
 from app.service.menu.tree import MENU_INDEX
-from app.bot.callbacks.callbacks import MenuCB, HandlerCB
+from app.bot.callbacks import MenuCB, ActionCB
 from app.bot.messages.menu import MenuConstants
 from .schemas import MenuAction, MenuNode, ChildElement
 
@@ -47,6 +47,7 @@ class MenuKeyboardBuilder:
         
         row_pattern = []
         
+        
         for child in node.childrens:
             if isinstance(child, list):
                 for item in child:
@@ -82,7 +83,7 @@ class MenuKeyboardBuilder:
             handler_action = item.handler_action or item.key
             builder.button(
                 text = item.title,
-                callback_data=HandlerCB(action=handler_action).pack(),
+                callback_data=ActionCB(path=item.path, action=handler_action).pack(),
                 style=ACTION_STYLE
             )
         elif isinstance(item, MenuNode):

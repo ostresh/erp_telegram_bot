@@ -57,7 +57,6 @@ class RecordService(BaseService[Record, RecordRepository]):
         except Exception as e:
             logger.exception(f"Error get available games: {e}")
             raise
-        
     
     async def update_price_selling_for_games(self, game_name: str, new_price: int) -> int:
         """
