@@ -259,7 +259,7 @@ def handle_celery(args: list[str]) -> int:
 def handle_test(args: list[str]) -> int:
     """Обработка команды test."""
     log_info("Запуск playground...")
-    result = subprocess.run([sys.executable, "-m", "playground"])
+    result = subprocess.run([sys.executable, "-m", "playground.main"])
     return result.returncode
 
 
