@@ -6,3 +6,6 @@ db.sqlite3
 data/
 src/playground
 docs/notes
+*.code-workspace
+.vscode
+celerybeat*

@@ -15,7 +15,7 @@ MENU_TREE = MenuNode(
             childrens=[
                 [
                     MenuAction(key='buy', title=ActionLabel.BUY, handler_action='buy-goods'),
-                    MenuAction(key='sell', title=ActionLabel.SELL, handler_action='sell')
+                    MenuAction(key='sell', title=ActionLabel.SELL, handler_action='sell-goods')
                 ],
                 MenuAction(key='order_arrived', title=ActionLabel.ORDER_ARRIVED, handler_action='order_arrived'),
                 [

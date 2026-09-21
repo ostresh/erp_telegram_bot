@@ -6,7 +6,7 @@ class Emoji:
     TRNS = '📝'
     GAME = '🎮'
     PRICE_BUY = '💸🔻'
-    PRICE_SELL = '🏷️'
+    PRICE_SELLING = '🏷️'
     PRICE_SOLD = '💰🔼'
     STATUS = '✅'
     SWAP = '🔄'

@@ -1,30 +1,24 @@
-from aiogram_dialog import Dialog, Window, DialogManager, StartMode
-from aiogram_dialog.widgets.kbd import (
-    Button, SwitchTo, Back, Cancel,
-    Group, Row, Column,
-    Select, Multiselect, Radio, Checkbox,
-    ScrollingGroup, NextPage, PrevPage,
-    Url, Counter, Calendar,
-)
+from aiogram_dialog import Dialog
+from aiogram_dialog.widgets.kbd import Select
 from aiogram_dialog.widgets.text import (
-    Const, Format, Jinja, Case, Multi,
+    Const, Format, Multi,
 )
-from aiogram_dialog.widgets.input import TextInput, MessageInput
+from aiogram_dialog.widgets.input import TextInput
 from aiogram_dialog.widgets.kbd import SwitchInlineQueryCurrentChat
 
 from app.bot.utils.emoji import Emoji
-from app.bot.messages.menu import MenuConstants
-from app.bot.dialogs.common import CommonDialogNavigation
+from app.bot.dialogs.common import CommonGetter, CommonEventHandler
+from app.bot.dialogs.core import RootWindow, InnerWindow
 
 from .states import BuyGoodsSG
 from .event_handler import BuyGoodsEventHandler
-from .getters import BuyGoodsGetters
+
 
 
 buy_goods_dialog = Dialog(
     
     # первый этап - выбор игры
-    Window(
+    RootWindow(
         Multi(
             Format('{start_data[menu_text]}'),
             Const(f'<b>{Emoji.GAME} ВВЕДИТЕ НАЗВАНИЕ ИГРЫ </b>'),
@@ -35,17 +29,17 @@ buy_goods_dialog = Dialog(
             Const('🔍 ПОИСК ИГРЫ'),
             Const('')
         ),
-        CommonDialogNavigation.root_controls,
         TextInput(
             id='type_game',
             type_factory=str,
-            on_success=BuyGoodsEventHandler.on_game_typed
+            on_success=BuyGoodsEventHandler.on_game_typed,
+            on_error=CommonEventHandler.on_text_error
         ),
         state=BuyGoodsSG.type_game,
     ),
     
     # второй этап - выбор способа получения
-    Window(
+    InnerWindow(
         Multi(
             Format('{start_data[menu_text]}'),
             Format(f'<b>{Emoji.GAME} ИГРА: {{dialog_data[game]}}</b>'),
@@ -57,15 +51,14 @@ buy_goods_dialog = Dialog(
            id = 'receive_select',
            item_id_getter=lambda item: item.get('id'),
            items = 'methods',
-           on_click=BuyGoodsEventHandler.on_receive_method_selected
+           on_click=CommonEventHandler.on_receive_method_selected
         ),
-        CommonDialogNavigation.inner_controls,
         state=BuyGoodsSG.receive_method,
-        getter=BuyGoodsGetters.get_local_or_delivery
+        getter=CommonGetter.get_local_or_delivery
     ),
     
     # третий этап - ввод закупочной цены
-    Window(
+    InnerWindow(
         Multi(
             Format('{start_data[menu_text]}'),
             Format(f'<b>{Emoji.GAME} ИГРА: {{dialog_data[game]}}</b>'),
@@ -73,11 +66,11 @@ buy_goods_dialog = Dialog(
             Format(f'{Emoji.PRICE_BUY} <b>Введите закупочную стоимость</b>'),
             sep='\n\n'
         ),
-        CommonDialogNavigation.inner_controls,
         TextInput(
             id='type_purchase_price',
             type_factory=int,
-            on_success=BuyGoodsEventHandler.on_price_purchase_typed
+            on_success=BuyGoodsEventHandler.on_price_purchase_typed,
+            on_error=CommonEventHandler.on_int_error
         ),
         state=BuyGoodsSG.type_price_purchase
     )

@@ -53,35 +53,35 @@ class RecordRepository(BaseRepository[Record]):
             logger.exception(f"Error checking availability for game '{game_name}': {e}")
             raise
     
-    async def get_available_games(self) -> List[Tuple[str, int, int]]:
+    async def get_available(self) -> List[Tuple[Record, str]]:
         """
         Получение всех игр из наличия
         С группировкой по играм
         
         Return:
-            Список Record
+            Список кортежей Record + название игры
             
         Raises:
             Exception: При ошибке чтения
         """
         
-        logger.debug("Getting available games")
+        logger.debug("Getting available records")
         
         try:
             stmt = (
-                select(Game.name, Record.price_purchase, Record.price_selling)
+                select(Record, Game.name)
                 .join(Game, Record.game_id == Game.id)
                 .where(Record.status == RecordStatus.AVAILABLE.value)
-                .group_by(Game.name, Record.price_purchase, Record.price_selling)
-                .order_by(Game.name)
+                .group_by(Record.id, Game.name)
+                .order_by(Record.id)
             )
             result = await self.session.execute(stmt)
-            games = result.all()
+            records = result.all()
             
-            logger.debug(f"Retrieved {len(games)} available games")
-            return games
+            logger.debug(f"Retrieved {len(records)} available records")
+            return records
         except Exception as e:
-            logger.exception(f"Error getting available games: {e}")
+            logger.exception(f"Error getting available records: {e}")
             raise
     
     async def get_delivery_to_me(self) -> List[Record]:
@@ -261,6 +261,88 @@ class RecordRepository(BaseRepository[Record]):
             logger.exception(f"Error getting Record by id={item_id} with relations: {e}")
             raise
     
+    
+    async def get_price_selling_for_game_in_available(self, game_name: str) -> int:
+        """
+        Получение цены продажи для конкретной игры из наличия
+        
+        Args:
+            game_name: Название игры
+            
+        Returns:
+            Цену для продажи, если:
+                Конкретная игра в наличии
+                Для этой игры установлена цена (не 0)
+            Если цена не установлена, вернет 0
+        """
+        
+        logger.debug(f'Getting price_sell for game in available: {game_name}')
+        
+        try:
+            
+            stmt = (
+                select(func.max(Record.price_selling))
+                .join(Game, Record.game_id == Game.id)
+                .where(
+                    and_(
+                        Record.status == RecordStatus.AVAILABLE,
+                        Game.name == game_name
+                    )
+                )
+            )
+            
+            result = await self.session.execute(stmt)
+            price_selling = result.scalar_one_or_none()
+            
+            if price_selling is None:
+                price_selling = 0
+            
+            logger.debug(f'Retrieved price_selling {price_selling} for game: {game_name}')
+            
+            return price_selling
+            
+        except Exception as e:
+            logger.exception(f'Error getting price_sell for game {game_name} in available : {e}')
+            raise
+    
+    async def get_available_by_game(self, game_name: str) -> List[Record]:
+        """
+        Получение всех записей из наличия определенной игры
+        С группировкой по записям
+        
+        Args:
+            game_name: название игры
+        
+        Return:
+            Список Record
+            
+        Raises:
+            Exception: При ошибке чтения
+        """
+        
+        logger.debug(f"Getting available records by game: {game_name}")
+        
+        try:
+            stmt = (
+                select(Record)
+                .join(Game, Record.game_id == Game.id)
+                .where(
+                    and_(
+                        Record.status == RecordStatus.AVAILABLE.value,
+                        Game.name == game_name
+                    )
+                )
+                .order_by(Record.id.asc())
+            )
+            result = await self.session.execute(stmt)
+            records = result.scalars().all()
+            
+            logger.debug(f"Retrieved {len(records)} available records")
+            return records
+        except Exception as e:
+            logger.exception(f"Getting available records by game {game_name}: {e}")
+            raise
+        
      
     """
     Запросы для финансового отчета

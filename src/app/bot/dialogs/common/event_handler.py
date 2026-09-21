@@ -23,6 +23,9 @@ from aiogram_dialog.api.exceptions import IncorrectBackgroundError
 from app.db.unit_of_work import UnitOfWork
 from app.service import MenuService
 
+import logging
+
+logger = logging.getLogger(__name__)
 
 class CommonEventHandler:
     """
@@ -83,6 +86,52 @@ class CommonEventHandler:
             text = menu.text,
             reply_markup = menu.keyboard
         )
+        
+    @staticmethod
+    async def on_int_error(
+        message: Message, 
+        widget: TextInput, 
+        manager: DialogManager, 
+        error: ValueError):
+        """
+        Обработчик для ввода цены (int)
+        """
+        await message.answer("❌ Введите целое число!")
+        
+    @staticmethod
+    async def on_text_error(
+        message: Message, 
+        widget: TextInput, 
+        manager: DialogManager, 
+        error: ValueError):
+        """
+        Обработчик для ввода строки (str)
+        """
+        await message.answer("❌ Введите правильную строку!")
+        
+    @staticmethod    
+    async def on_receive_method_selected(
+        callback: CallbackQuery,
+        widget: Select,
+        manager: DialogManager,
+        item_id: str,
+    ) -> None:
+        """
+        Обработчик выбора метода продажи товара
+        (локально или с доставкой)
+        """
+        
+        await callback.answer()
+        
+        manager.dialog_data['receive_type'] = item_id
+        
+        receive_title = manager.dialog_data['receive_methods_map'][item_id]
+        manager.dialog_data['receive_title'] = receive_title
+        
+        logger.info(f"Receive method {item_id}, proceeding to next step")
+        
+        await manager.next(show_mode=ShowMode.EDIT)
+
           
             
         

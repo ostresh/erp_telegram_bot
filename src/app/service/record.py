@@ -38,24 +38,48 @@ class RecordService(BaseService[Record, RecordRepository]):
             raise
     
     
-    async def get_available_games(self) -> List[Tuple[str, int, int]]:
+    async def get_available(self) -> List[Tuple[Record, str]]:
         """
-        Получение всех игр из наличия
-        С группировкой по играм
+        Получение всех записей из наличия
+        С группировкой по записям
         
         Return:
-            Список Record
+            Список кортежей Record + название игры
             
         Raises:
             Exception: При ошибке создания
         """
         
-        logger.info("Getting available games")
+        logger.info("Getting available records")
         
         try:
-            return await self.repo.get_available_games()
+            return await self.repo.get_available()
         except Exception as e:
-            logger.exception(f"Error get available games: {e}")
+            logger.exception(f"Error get available records: {e}")
+            raise
+        
+        
+    async def get_available_by_game(self, game_name: str) -> List[Record]:
+        """
+        Получение всех записей из наличия определенной игры
+        С группировкой по записям
+        
+        Args:
+            game_name: название игры
+        
+        Return:
+            Список Record
+            
+        Raises:
+            Exception: При ошибке чтения
+        """
+        
+        logger.info(f"Getting available records by game: {game_name}")
+                
+        try:
+            return await self.repo.get_available_by_game(game_name)
+        except Exception as e:
+            logger.exception(f"Error Getting available records by game {game_name}: {e}")
             raise
     
     async def update_price_selling_for_games(self, game_name: str, new_price: int) -> int:
@@ -173,6 +197,28 @@ class RecordService(BaseService[Record, RecordRepository]):
             return await self.repo.get_by_id_with_relations(item_id)
         except Exception as e:
             logger.exception(f"Error getting Record by id={item_id} with relations: {e}")
+            raise
+        
+    async def get_price_selling_for_game_in_available(self, game_name: str) -> int:
+        """
+        Получение цены продажи для конкретной игры из наличия
+        
+        Args:
+            game_name: Название игры
+            
+        Returns:
+            Цену для продажи, если:
+                Конкретная игра в наличии
+                Для этой игры установлена цена (не 0)
+            Если цена не установлена, вернет 0
+        """
+        
+        logger.info(f"Getting price_sell for game in available: {game_name}")
+                                
+        try:
+            return await self.repo.get_price_selling_for_game_in_available(game_name)
+        except Exception as e:
+            logger.exception(f"Error getting price_sell for game in available: {game_name}: {e}")
             raise
             
             

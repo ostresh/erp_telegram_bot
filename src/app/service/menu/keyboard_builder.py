@@ -28,9 +28,11 @@ class MenuKeyboardBuilder:
         """
         Генерирует клавиатуру для указанного пути меню.
         
+        Производит группировку клавиатуры,
+        если элементы объединены в список
+        
         Args:
             path: Путь меню (например, 'main' или 'main-info-records')
-            row_width: Количество кнопок в ряду (по умолчанию 2)
             
         Returns:
             InlineKeyboardBuilder с готовой клавиатурой.
@@ -70,7 +72,7 @@ class MenuKeyboardBuilder:
         return builder.as_markup()
     
     @staticmethod
-    def _add_button(builder: InlineKeyboardBuilder, item: ChildElement) -> None:
+    def _add_button(builder: InlineKeyboardBuilder, item: MenuNode | MenuAction) -> None:
         """
         Добавляет кнопку в builder в зависимости от типа элемента.
         

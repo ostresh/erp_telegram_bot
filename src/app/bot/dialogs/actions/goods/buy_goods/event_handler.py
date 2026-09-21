@@ -1,6 +1,5 @@
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import Message
 from aiogram_dialog import DialogManager, ShowMode
-from aiogram_dialog.widgets.kbd import Select
 from aiogram_dialog.widgets.input import TextInput
 
 from app.db.unit_of_work import UnitOfWork
@@ -34,13 +33,14 @@ class BuyGoodsEventHandler:
         
         async with uow() as session:
             service = GameService(session)
-            is_exists = service.is_game_exists(text.strip())
+            is_exists = await service.is_game_exists(text.strip())
             
         if not is_exists:
-            await message.answer(
+            error_message = await message.answer(
                 f'❌ Игра {text} не найдена.\n'
                 'Попробуйте еще раз'
             )
+            await schedule_message_for_deletion(error_message)
             return
         
         manager.dialog_data['game'] = text
@@ -49,41 +49,24 @@ class BuyGoodsEventHandler:
         
         await message.delete()
         await manager.next(show_mode=ShowMode.EDIT)
-    
-    @staticmethod    
-    async def on_receive_method_selected(
-        callback: CallbackQuery,
-        widget: Select,
-        manager: DialogManager,
-        item_id: str,
-    ) -> None:
-        """
-        Обработчик выбора метода продажи товара
-        (локально или с доставкой)
-        """
         
-        manager.dialog_data['receive_type'] = item_id
-        
-        receive_title = manager.dialog_data['receive_methods_map'][item_id]
-        manager.dialog_data['receive_title'] = receive_title
-        
-        logger.info(f"Receive method {item_id}, proceeding to next step")
-        
-        await manager.next(show_mode=ShowMode.EDIT)
-        
-    
     @staticmethod
     async def on_price_purchase_typed(
         message: Message,
         widget: TextInput,
         manager: DialogManager,
-        text: str,
+        text: int,
     ) -> None:
         """
         Обработчик ввода закупочной цены
         
         После ввода создается объект Record
-        Форматируется и сразу выводится
+        Price_selling (цена продажи) автоматически устанавливается,
+        Если:
+            Уже есть эта игра с ценой для продажи
+            Игра есть в наличии
+        
+        Объект форматируется и сразу выводится
         
         Перенаправляется в главное меню
         """
@@ -92,27 +75,41 @@ class BuyGoodsEventHandler:
         receive_type =  manager.dialog_data['receive_type']
         game = manager.dialog_data['game']
         
-        status = RecordStatus.AVAILABLE.value if receive_type == 'local' else RecordStatus.IN_TRANSIT_TO_ME.value
+        status = (
+            RecordStatus.AVAILABLE.value 
+            if receive_type == 'local' 
+            else RecordStatus.IN_TRANSIT_TO_ME.value
+        )
         
         uow: UnitOfWork = manager.middleware_data["uow"]
         
-        async with uow() as session:
-            game_service = GameService(session)
-            record_service = RecordService(session)
-            menu_service = MenuService(session)
-            
-            game = await game_service.get_by_name(game_name=game)
-                        
-            record = Record(
-                game_id = game.id,
-                price_purchase = price_purchase,
-                status = status
+        
+        try:
+            async with uow() as session:
+                game_service = GameService(session)
+                record_service = RecordService(session)
+                menu_service = MenuService(session)
+                
+                price_selling = await record_service.get_price_selling_for_game_in_available(game_name=game)
+                
+                game = await game_service.get_by_name(game_name=game)
+                            
+                record = Record(
+                    game_id = game.id,
+                    price_purchase = price_purchase,
+                    price_selling = price_selling,
+                    status = status
+                )
+                
+                new_record = await record_service.create(record)
+                new_record_with_relations = await record_service.get_by_id_with_relations(new_record.id)
+                
+                main_menu = await menu_service.get_menu('main')
+        except Exception:
+            await schedule_message_for_deletion(
+                await message.answer('❌ Ошибка при сохранении в БД')
             )
-            
-            new_record = await record_service.create(record)
-            new_record_with_relations = await record_service.get_by_id_with_relations(new_record.id)
-            
-            main_menu = await menu_service.get_menu('main')
+            return
             
         formatted_record = MessageFormatter.format_record(new_record_with_relations)
         
@@ -134,17 +131,3 @@ class BuyGoodsEventHandler:
             text = main_menu.text,
             reply_markup=main_menu.keyboard
         )
-        
-        
-        
-        
-        
-        
-        
-        
-                
-        
-        
-        
-        
-        

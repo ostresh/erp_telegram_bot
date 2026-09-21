@@ -1,7 +1,7 @@
 from aiogram_dialog import DialogManager
 
 
-class BuyGoodsGetters:
+class CommonGetter:
     
     @staticmethod
     async def get_local_or_delivery(dialog_manager: DialogManager, **kwargs) -> dict[str, list]:
@@ -25,4 +25,3 @@ class BuyGoodsGetters:
         return {
             'methods' : methods
         }
-            

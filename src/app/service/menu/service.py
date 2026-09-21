@@ -59,7 +59,7 @@ class MenuService:
             if i == 0:
                 parts.append(f'<b>{title}</b>')
             else:
-                parts.append(f'→<b>{title}</b>')
+                parts.append(f'→ <b>{title}</b>')
         
         return '\n'.join(parts)
     

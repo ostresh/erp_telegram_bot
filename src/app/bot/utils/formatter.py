@@ -119,9 +119,9 @@ class MessageFormatter:
         )
         
         price_sell = (
-            f" • {Emoji.PRICE_SELL} <code>{money(record.price_selling)}</code>р."
+            f" • {Emoji.PRICE_SELLING} <code>{money(record.price_selling)}</code>р."
             if record.price_selling is not None
-            else f" • {Emoji.PRICE_SELL} 0р."
+            else f" • {Emoji.PRICE_SELLING} 0р."
         )
         
         price_sold = (
