@@ -21,7 +21,7 @@ import os
 from pathlib import Path
 
 # Путь к alembic.ini
-ALEMBIC_INI = Path(__file__).parent / "bot" / "db" / "alembic.ini"
+ALEMBIC_INI = Path(__file__).parent / "app" / "core" / "db" / "alembic.ini"
 
 # Определяем платформу
 IS_WINDOWS = sys.platform == "win32"
@@ -166,7 +166,7 @@ def handle_run(args: list[str]) -> int:
     # === Запуск бота ===
     if app_name == "bot":
         log_info("Запуск бота...")
-        result = subprocess.run([sys.executable, "-m", "main"])
+        result = subprocess.run([sys.executable, "-m", "app.interfaces.bot.main"])
         return result.returncode
     
     # === Запуск Celery ===
@@ -199,7 +199,7 @@ def handle_celery(args: list[str]) -> int:
     command = args[0]
     
     # ✅ Путь к celery_app
-    CELERY_APP = "app.tasks.celery_app"
+    CELERY_APP = "app.core.tasks.celery_app"
     
     # ✅ Windows всегда использует solo pool
     pool_args = ["--pool=solo"] if IS_WINDOWS else []
