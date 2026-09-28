@@ -25,7 +25,7 @@ async def start_sell_goods_dialog(callback: CallbackQuery, callback_data: Action
     logger.info(f'User {callback.message.from_user.id} start sell-goods dialog')
     
     await dialog_manager.start(
-        state=SellGoodsSG.type_game,
+        state=SellGoodsSG.game_input,
         mode=StartMode.RESET_STACK,
         show_mode=ShowMode.EDIT,
         data={

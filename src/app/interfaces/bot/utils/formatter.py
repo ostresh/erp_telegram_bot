@@ -80,7 +80,7 @@ class MessageFormatter:
         Форматирует один объект Record для вывода в Telegram.
         
         Args:
-            record: объект Record
+            record: объект Record с relations
             
         Returns:
             HTML строка для вывода в telegram
@@ -107,15 +107,15 @@ class MessageFormatter:
             else ''
         )
         trns = (
-            f"{Emoji.TRNS} <b>{record.utility.title if record.utility else f'ID:{record.trns_id}'}</b>"
-            if record.trns_id is not None
+            f"{Emoji.TRNS} <b>{record.utility.title if record.utility else f'ID:{record.util_id}'}</b>"
+            if record.util_id is not None
             else ''
         )
         
         price_buy = (
-            f"{Emoji.PRICE_BUY} <code>{money(record.price_purchase)}</code>р."
+            f"{Emoji.PRICE_PURCHASE} <code>{money(record.price_purchase)}</code>р."
             if record.price_purchase is not None
-            else f"{Emoji.PRICE_BUY} 0р."
+            else f"{Emoji.PRICE_PURCHASE} 0р."
         )
         
         price_sell = (
@@ -145,7 +145,8 @@ class MessageFormatter:
         
         lines = [
             f"{record_id}{purchase_at}{sold_at}",
-            f"{game} {trns}",
+            f"{game}",
+            f"{trns}",
             f"{price_buy}{price_sell}",
             f"{price_sold}{profit}",
             status_text,

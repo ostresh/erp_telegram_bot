@@ -90,7 +90,7 @@ class GameService(BaseService[Game, GameRepository]):
             logger.exception(f"Error search available games for query {query}: {e}")
             raise
         
-    async def search_delivery_to_client(self, query: str, limit: int = 50) -> List[Game]:
+    async def search_in_transit_to_client(self, query: str, limit: int = 50) -> List[Game]:
         """
         Поиск игр по названию игры, которые едут к покупателю
         
@@ -111,12 +111,12 @@ class GameService(BaseService[Game, GameRepository]):
         logger.info(f"Search delivery to client games for query: {query}'")
                         
         try:
-            return await self.repo.search_delivery_to_client(query, limit)
+            return await self.repo.search_in_transit_to_client(query, limit)
         except Exception as e:
             logger.exception(f"Error delivery to client search games for query {query}: {e}")
             raise
     
-    async def search_delivery_to_me(self, query: str, limit: int = 50) -> List[Game]:
+    async def search_in_transit_to_me(self, query: str, limit: int = 50) -> List[Game]:
         """
         Поиск игр по названию игры, которые едут ко мне
         
@@ -137,7 +137,7 @@ class GameService(BaseService[Game, GameRepository]):
         logger.info(f"Search delivery to me games for query: {query}'")
                         
         try:
-            return await self.repo.search_delivery_to_me(query, limit)
+            return await self.repo.search_in_transit_to_me(query, limit)
         except Exception as e:
             logger.exception(f"Error delivery to me search games for query {query}: {e}")
             raise

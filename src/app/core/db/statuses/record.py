@@ -12,10 +12,10 @@ class RecordStatus(str, Enum):
     def display_name(self) -> str:
         """Отображаемое имя для пользователя"""
         names = {
-            "available": "Да",
-            "sold": "Нет",
-            "in_transit_to_me": "Едет ко мне",
-            "in_transit_to_client": "Едет к покупателю",
+            "available": "В наличии",
+            "sold": "Продано",
+            "in_transit_to_me": "В пути ко мне",
+            "in_transit_to_client": "В пути к покупателю",
         }
         return names[self.value]
     

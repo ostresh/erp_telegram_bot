@@ -17,7 +17,7 @@ router = Router(name="search")
 
 
 @router.inline_query(F.query.startswith("@to_me "))
-async def search_delivery_to_me_games(inline_query: InlineQuery, uow: UnitOfWork):
+async def search_in_transit_to_me_games(inline_query: InlineQuery, uow: UnitOfWork):
     """
     Обрабатывает инлайн-запросы: выводит игры по названию, которые едут ко мне.
     
@@ -41,7 +41,7 @@ async def search_delivery_to_me_games(inline_query: InlineQuery, uow: UnitOfWork
     
     async with uow() as session:
         service = GameService(session)
-        games = await service.search_delivery_to_me(query)
+        games = await service.search_in_transit_to_me(query)
     
         
     if not games:
@@ -80,7 +80,7 @@ async def search_delivery_to_me_games(inline_query: InlineQuery, uow: UnitOfWork
     )
 
 @router.inline_query(F.query.startswith("@to_client "))
-async def search_delivery_to_client_games(inline_query: InlineQuery, uow: UnitOfWork):
+async def search_in_transit_to_client_games(inline_query: InlineQuery, uow: UnitOfWork):
     """
     Обрабатывает инлайн-запросы: выводит игры по названию, которые едут к покупателю.
     
@@ -104,7 +104,7 @@ async def search_delivery_to_client_games(inline_query: InlineQuery, uow: UnitOf
     
     async with uow() as session:
         service = GameService(session)
-        games = await service.search_delivery_to_client(query)
+        games = await service.search_in_transit_to_client(query)
     
         
     if not games:

@@ -85,13 +85,13 @@ class Record(Base):
     Модель записи (товара).
     
     Хранит информацию о каждой покупке/продаже товара.
-    Запись должна быть либо игрой (game_id), либо утилитой (trns_id),
+    Запись должна быть либо игрой (game_id), либо утилитой (util_id),
     но не обоими одновременно.
     
     Attributes:
         id (int, auto): Уникальный идентификатор
         game_id (int, required): ID игры, если не указана утилита
-        trns_id (int, required): ID транзакции, если не указана игра
+        util_id (int, required): ID транзакции, если не указана игра
         bulk_order_id (int): ID оптового заказа
         purchase_at (datetime, auto): Дата покупки
         sold_at (datetime): Дата продажи
@@ -134,7 +134,7 @@ class Record(Base):
         nullable=True,
         index=True
     )
-    trns_id: Mapped[Optional[int]] = mapped_column(
+    util_id: Mapped[Optional[int]] = mapped_column(
         Integer,
         ForeignKey("utils_list.id", ondelete="SET NULL"),
         nullable=True,
@@ -160,7 +160,7 @@ class Record(Base):
     utility: Mapped[Optional["Utility"]] = relationship(back_populates="records")
     bulk_order: Mapped[Optional["BulkOrder"]] = relationship(back_populates="records")
 
-    @validates('game_id', 'trns_id')
+    @validates('game_id', 'util_id')
     def validate_game_or_util(self, key, value):
         """Проверка: либо игра, либо утилита"""
         return value
@@ -169,9 +169,9 @@ class Record(Base):
         super().__init__(**kwargs)
         
         # Валидация при создании
-        if self.game_id is None and self.trns_id is None:
+        if self.game_id is None and self.util_id is None:
             raise ValueError("Record должен быть либо игрой, либо утилитой")
-        if self.game_id is not None and self.trns_id is not None:
+        if self.game_id is not None and self.util_id is not None:
             raise ValueError("Record не может быть одновременно игрой и утилитой")
 
     @property

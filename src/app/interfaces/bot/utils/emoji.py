@@ -5,7 +5,7 @@ class Emoji:
     DATE = '🗓️'
     TRNS = '📝'
     GAME = '🎮'
-    PRICE_BUY = '💸🔻'
+    PRICE_PURCHASE = '💸🔻'
     PRICE_SELLING = '🏷️'
     PRICE_SOLD = '💰🔼'
     STATUS = '✅'
@@ -39,6 +39,8 @@ class Emoji:
     ALL_ASSETS = '🗂️💵'
     
     TAGS = '📃'
+    
+    ERROR = '❌'
 
 
     

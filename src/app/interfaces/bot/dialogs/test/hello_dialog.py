@@ -380,7 +380,7 @@ hello_dialog = Dialog(
         Select(
             Format("{item[name]}"),
             id="fruit_select",
-            item_id_getter=lambda item: item["id"],
+            item_id_getter=lambda item: item.get('id'),
             items="fruits",
             on_click=on_fruit_selected,
         ),
@@ -402,7 +402,7 @@ hello_dialog = Dialog(
             Format("✓ {item[name]}"),
             Format("✗ {item[name]}"),
             id="topping_select",
-            item_id_getter=lambda item: item["id"],
+            item_id_getter=lambda item: item.get('id'),
             items="toppings",
             on_state_changed=on_multiselect_changed,
         ),
@@ -424,7 +424,7 @@ hello_dialog = Dialog(
                 Format("🔘 {item[name]}"),
                 Format("⚪ {item[name]}"),
                 id="size_radio",
-                item_id_getter=lambda item: item["id"],
+                item_id_getter=lambda item: item.get('id'),
                 items=[
                     {"id": "small", "name": "Маленький"},
                     {"id": "medium", "name": "Средний"},
@@ -544,7 +544,7 @@ hello_dialog = Dialog(
             Select(
                 Format("{item[name]}"),
                 id="scroll_item",
-                item_id_getter=lambda item: item["id"],
+                item_id_getter=lambda item: item.get('id'),
                 items="items",
                 on_click=lambda c, w, m, i: c.answer(f"Клик на элемент {i}"),
             ),

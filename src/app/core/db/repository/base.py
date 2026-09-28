@@ -145,7 +145,7 @@ class BaseRepository(Generic[ModelType]):
     """
     UPDATE
     """
-    async def update(self, item_id: int, **data) -> Optional[ModelType]:
+    async def update(self, item_id: int, **data: dict[str, str]) -> Optional[ModelType]:
         """
         Обновление данных в модели
         

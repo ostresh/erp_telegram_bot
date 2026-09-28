@@ -130,7 +130,7 @@ class GameRepository(BaseRepository[Game]):
             logger.exception(f"Error getting available games for query '{query}': {e}")
             raise
         
-    async def search_delivery_to_client(self, query: str, limit: int = 50) -> List[Game]:
+    async def search_in_transit_to_client(self, query: str, limit: int = 50) -> List[Game]:
         """
         Поиск игр по названию игры, которые едут к покупателю
         
@@ -173,7 +173,7 @@ class GameRepository(BaseRepository[Game]):
             logger.exception(f"Error getting delivery to client games for query '{query}': {e}")
             raise
         
-    async def search_delivery_to_me(self, query: str, limit: int = 50) -> List[Game]:
+    async def search_in_transit_to_me(self, query: str, limit: int = 50) -> List[Game]:
         """
         Поиск игр по названию игры, которые едут ко мне
         

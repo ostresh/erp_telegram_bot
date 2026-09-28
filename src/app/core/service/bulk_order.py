@@ -15,7 +15,7 @@ class BulkOrderService(BaseService[BulkOrder, BulkOrderRepository]):
     def __init__(self, session: AsyncSession):
         super().__init__(session, BulkOrderRepository(session))
         
-    async def get_delivery_to_me(self) -> List[BulkOrder]:
+    async def get_in_transit_to_me(self) -> List[BulkOrder]:
         """
         Получение всех записей
         Которые едут ко мне
@@ -30,7 +30,7 @@ class BulkOrderService(BaseService[BulkOrder, BulkOrderRepository]):
         logger.info("Getting delivery to me bulk orders")
                 
         try:
-            return await self.repo.get_delivery_to_me()
+            return await self.repo.get_in_transit_to_me()
         except Exception as e:
             logger.exception(f"Error get delivery to me bulk orders: {e}")
             raise

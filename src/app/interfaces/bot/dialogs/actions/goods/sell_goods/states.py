@@ -1,8 +1,8 @@
-from aiogram.fsm.state import StatesGroup, State
+from aiogram.fsm.state import State, StatesGroup
 
 class SellGoodsSG(StatesGroup):
-    type_game = State()
+    game_input = State()
     select_record_id = State()
     receive_method = State()
-    type_price_sold = State()
+    input_price_sold = State()
     

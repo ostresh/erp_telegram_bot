@@ -14,10 +14,10 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 
 # ============================================================
-# Пути: env.py → alembic/ → db/ → bot/ → src/
+# Пути: env.py → alembic/ → db/ → core/ → app/ → src/
 # ============================================================
 current_file = Path(__file__).resolve()
-src_dir = current_file.parent.parent.parent.parent
+src_dir = current_file.parents[4]
 
 sys.path.insert(0, str(src_dir))
 

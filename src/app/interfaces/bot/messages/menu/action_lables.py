@@ -16,6 +16,7 @@ class ActionLabel:
     RESERVE = "🎫 БРОНЬ"
     CHANGE_SELLING_PRICE = "💵 ИЗМЕНИТЬ ЦЕНУ ПРОДАЖИ"
     ADD_TRNS = "➕ ДОБАВИТЬ ТРАНЗАКЦИЮ"
+    COMMENT = "💬 ДОБАВИТЬ КОММЕНТАРИЙ"
     
     # Склад и доставка
     IN_TRANSIT_TO_ME = "🚚 КО МНЕ"

@@ -40,6 +40,8 @@ class MenuKeyboardBuilder:
             и логирует предупреждение.
         """
         
+        
+        
         builder = InlineKeyboardBuilder()
         node = MENU_INDEX.get(path)
         

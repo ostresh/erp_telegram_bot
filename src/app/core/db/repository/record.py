@@ -84,7 +84,7 @@ class RecordRepository(BaseRepository[Record]):
             logger.exception(f"Error getting available records: {e}")
             raise
     
-    async def get_delivery_to_me(self) -> List[Record]:
+    async def get_in_transit_to_me(self) -> List[Record]:
         """
         Получение всех записей
         Которые едут ко мне
@@ -115,7 +115,7 @@ class RecordRepository(BaseRepository[Record]):
             logger.exception(f"Error getting delivery to me records {e}")
             raise
         
-    async def get_delivery_to_client(self) -> List[Record]:
+    async def get_in_transit_to_client(self) -> List[Record]:
         """
         Получение всех записей
         Которые едут к покупателю
@@ -343,6 +343,82 @@ class RecordRepository(BaseRepository[Record]):
             logger.exception(f"Getting available records by game {game_name}: {e}")
             raise
         
+    async def get_in_transit_to_client_by_game(self, game_name: str) -> List[Record]:
+        """
+        Получение всех записей, которые едут к клиенту, определенной игры
+        С группировкой по записям
+        
+        Args:
+            game_name: название игры
+        
+        Return:
+            Список Record
+            
+        Raises:
+            Exception: При ошибке чтения
+        """
+        
+        logger.debug(f"Getting in transit client records by game: {game_name}")
+        
+        try:
+            stmt = (
+                select(Record)
+                .join(Game, Record.game_id == Game.id)
+                .where(
+                    and_(
+                        Record.status == RecordStatus.IN_TRANSIT_TO_CLIENT.value,
+                        Game.name == game_name
+                    )
+                )
+                .order_by(Record.id.asc())
+            )
+            result = await self.session.execute(stmt)
+            records = result.scalars().all()
+            
+            logger.debug(f"Retrieved {len(records)} in transit client records")
+            return records
+        except Exception as e:
+            logger.exception(f"Getting in transit client records by game {game_name}: {e}")
+            raise
+        
+    async def get_in_transit_to_me_by_game(self, game_name: str) -> List[Record]:
+        """
+        Получение всех записей, которые едут к клиенту, определенной игры
+        С группировкой по записям
+        
+        Args:
+            game_name: название игры
+        
+        Return:
+            Список Record
+            
+        Raises:
+            Exception: При ошибке чтения
+        """
+        
+        logger.debug(f"Getting in transit me records by game: {game_name}")
+        
+        try:
+            stmt = (
+                select(Record)
+                .join(Game, Record.game_id == Game.id)
+                .where(
+                    and_(
+                        Record.status == RecordStatus.IN_TRANSIT_TO_ME.value,
+                        Game.name == game_name
+                    )
+                )
+                .order_by(Record.id.asc())
+            )
+            result = await self.session.execute(stmt)
+            records = result.scalars().all()
+            
+            logger.debug(f"Retrieved {len(records)} in transit me records")
+            return records
+        except Exception as e:
+            logger.exception(f"Getting in transit me records by game {game_name}: {e}")
+            raise
+        
      
     """
     Запросы для финансового отчета
@@ -427,7 +503,7 @@ class RecordRepository(BaseRepository[Record]):
                         (and_(
                             Record.status == RecordStatus.SOLD.value,
                             Record.game_id.isnot(None),
-                            Record.trns_id.is_(None)
+                            Record.util_id.is_(None)
                         ), Record.id)
                     )
                 ).label('discs_count_sold')
@@ -445,7 +521,7 @@ class RecordRepository(BaseRepository[Record]):
             logger.exception(f"Error getting sales financials: {e}")
             raise
     
-    async def get_delivery_to_client_financial(self) -> Tuple[int, int]:
+    async def get_in_transit_to_client_financial(self) -> Tuple[int, int]:
         """
         Получить сумму и количество записей, едущих к покупателю.
         
@@ -576,7 +652,7 @@ class RecordRepository(BaseRepository[Record]):
             stmt = select(
                 func.coalesce(func.sum(Record.price_purchase), 0)
             ).join(
-                Utility, Record.trns_id == Utility.id
+                Utility, Record.util_id == Utility.id
             ).where(
                 Utility.title.ilike(f'%{transaction_title}%')
             )

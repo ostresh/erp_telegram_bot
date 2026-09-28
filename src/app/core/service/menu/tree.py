@@ -17,34 +17,43 @@ MENU_TREE = MenuNode(
                     MenuAction(key='buy', title=ActionLabel.BUY, handler_action='buy-goods'),
                     MenuAction(key='sell', title=ActionLabel.SELL, handler_action='sell-goods')
                 ],
-                MenuAction(key='order_arrived', title=ActionLabel.ORDER_ARRIVED, handler_action='order_arrived'),
-                [
-                    MenuAction(key='swap', title=ActionLabel.SWAP, handler_action='swap'),
-                    MenuAction(key='reserve', title=ActionLabel.RESERVE, handler_action='reserve')
-                ],
-                MenuAction(key='change_selling_price', title=ActionLabel.CHANGE_SELLING_PRICE, handler_action='change_selling_price'),
-                MenuAction(key='add_trns', title=ActionLabel.ADD_TRNS, handler_action='add_trns'),
+                MenuAction(key='order_arrived', title=ActionLabel.ORDER_ARRIVED, handler_action='order-arrived'),
+                MenuAction(key='change_selling_price', title=ActionLabel.CHANGE_SELLING_PRICE, handler_action='change-selling-price'),
+                MenuAction(key='add_trns', title=ActionLabel.ADD_TRNS, handler_action='add-trns'),
                 
-                # main-goods-warehouse_delivery
+                #main-goods
                 MenuNode(
-                    key='goods_delivery',
-                    title=MenuTitle.WAREHOUSE_DELIVERY,
+                    key='extra',
+                    title=MenuTitle.EXTRA,
                     childrens=[
                         [
-                            MenuAction(key='to_me', title=ActionLabel.IN_TRANSIT_TO_ME, handler_action='goods_to_me'),
-                            MenuAction(key='to_client', title=ActionLabel.IN_TRANSIT_TO_CLIENT, handler_action='goods_to_client')
+                            MenuAction(key='swap', title=ActionLabel.SWAP, handler_action='swap'),
+                            MenuAction(key='reserve', title=ActionLabel.RESERVE, handler_action='reserve')
                         ],
-                        MenuAction(key='available', title=ActionLabel.AVAILABLE, handler_action='available'),
-                    ]
-                ),
-                
-                # main-goods-records_management
-                MenuNode(
-                    key='records_management',
-                    title=MenuTitle.RECORDS_MANAGEMENT,
-                    childrens=[
-                        MenuAction(key='change_row', title=ActionLabel.CHANGE_ROW_BY_ID, handler_action='change_row_by_id'),
-                        MenuAction(key='delete_row', title=ActionLabel.DELETE_ROW_BY_ID, handler_action='delete_row_by_id'),
+
+                        MenuAction(key='comment', title=ActionLabel.COMMENT, handler_action='add-comment'),
+                        
+                        #main-goods-extra
+                        MenuNode(
+                            key='goods_delivery',
+                            title=MenuTitle.WAREHOUSE_DELIVERY,
+                            childrens=[
+                                [
+                                    MenuAction(key='to_me', title=ActionLabel.IN_TRANSIT_TO_ME, handler_action='goods_to_me'),
+                                    MenuAction(key='to_client', title=ActionLabel.IN_TRANSIT_TO_CLIENT, handler_action='goods_to_client')
+                                ],
+                                MenuAction(key='available', title=ActionLabel.AVAILABLE, handler_action='available'),
+                            ]
+                        ),
+                        # main-goods-extra-records_management
+                        MenuNode(
+                            key='management',
+                            title=MenuTitle.RECORDS_MANAGEMENT,
+                            childrens=[
+                                MenuAction(key='change_row', title=ActionLabel.CHANGE_ROW_BY_ID, handler_action='change_row_by_id'),
+                                MenuAction(key='delete_row', title=ActionLabel.DELETE_ROW_BY_ID, handler_action='delete_row_by_id'),
+                            ]
+                        ),
                     ]
                 ),
             ]

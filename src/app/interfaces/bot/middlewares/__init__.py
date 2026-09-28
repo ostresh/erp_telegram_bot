@@ -3,5 +3,5 @@ from .db import UnitOfWorkMiddleware
 
 __all__ = [
     AuthMiddleware,
-    UnitOfWorkMiddleware
+    UnitOfWorkMiddleware,
 ]

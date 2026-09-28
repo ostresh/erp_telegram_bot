@@ -137,7 +137,7 @@ class BaseService(Generic[ModelType, RepoType]):
     UPDATE
     """
     
-    async def update(self, item_id: int, **data) -> Optional[ModelType]:
+    async def update(self, item_id: int, **data: dict[str, str]) -> Optional[ModelType]:
         """
         Обновить запись по ID.
         

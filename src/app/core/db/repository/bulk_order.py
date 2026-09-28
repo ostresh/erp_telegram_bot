@@ -17,7 +17,7 @@ class BulkOrderRepository(BaseRepository[BulkOrder]):
     def __init__(self, session: AsyncSession):
         super().__init__(session, BulkOrder)
         
-    async def get_delivery_to_me(self) -> List[BulkOrder]:
+    async def get_in_transit_to_me(self) -> List[BulkOrder]:
         """
         Получение всех оптовых заказов
         Которые едут ко мне

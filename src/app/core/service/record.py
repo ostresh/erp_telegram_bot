@@ -79,7 +79,53 @@ class RecordService(BaseService[Record, RecordRepository]):
         try:
             return await self.repo.get_available_by_game(game_name)
         except Exception as e:
-            logger.exception(f"Error Getting available records by game {game_name}: {e}")
+            logger.exception(f"Error getting available records by game {game_name}: {e}")
+            raise
+        
+    async def get_in_transit_to_client_by_game(self, game_name: str) -> List[Record]:
+        """
+        Получение всех записей, которые едут к клиенту, определенной игры
+        С группировкой по записям
+        
+        Args:
+            game_name: название игры
+        
+        Return:
+            Список Record
+            
+        Raises:
+            Exception: При ошибке чтения
+        """
+        
+        logger.info(f"Getting in transit to client records by game: {game_name}")
+                
+        try:
+            return await self.repo.get_in_transit_to_client_by_game(game_name)
+        except Exception as e:
+            logger.exception(f"Error getting in transit to client records by game {game_name}: {e}")
+            raise
+        
+    async def get_in_transit_to_me_by_game(self, game_name: str) -> List[Record]:
+        """
+        Получение всех записей, которые едут к мне, определенной игры
+        С группировкой по записям
+        
+        Args:
+            game_name: название игры
+        
+        Return:
+            Список Record
+            
+        Raises:
+            Exception: При ошибке чтения
+        """
+        
+        logger.info(f"Getting in transit to me records by game: {game_name}")
+                
+        try:
+            return await self.repo.get_in_transit_to_me_by_game(game_name)
+        except Exception as e:
+            logger.exception(f"Error getting in transit to me records by game {game_name}: {e}")
             raise
     
     async def update_price_selling_for_games(self, game_name: str, new_price: int) -> int:
@@ -111,7 +157,7 @@ class RecordService(BaseService[Record, RecordRepository]):
             logger.exception(f'Error for update price selling for {game_name}: {e}')
             raise
     
-    async def get_delivery_to_me(self) -> List[Record]:
+    async def get_in_transit_to_me(self) -> List[Record]:
         """
         Получение всех записей
         Которые едут ко мне
@@ -126,12 +172,12 @@ class RecordService(BaseService[Record, RecordRepository]):
         logger.info("Getting delivery to me records")
         
         try:
-            return await self.repo.get_delivery_to_me()
+            return await self.repo.get_in_transit_to_me()
         except Exception as e:
             logger.exception(f"Error get delivery to me records: {e}")
             raise
         
-    async def get_delivery_to_client(self) -> List[Record]:
+    async def get_in_transit_to_client(self) -> List[Record]:
         """
         Получение всех записей
         Которые едут к покупателю
@@ -146,7 +192,7 @@ class RecordService(BaseService[Record, RecordRepository]):
         logger.info("Getting delivery to client records")
         
         try:
-            return await self.repo.get_delivery_to_client()
+            return await self.repo.get_in_transit_to_client()
         except Exception as e:
             logger.exception(f"Error get delivery to client records: {e}")
             raise

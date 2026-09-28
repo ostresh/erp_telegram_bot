@@ -81,7 +81,7 @@ class FinanceService:
                 data['revenue'], data['discs_count_sold'] = await self.repo.get_sales_financials()
             
             if 'delivery' in groups:
-                data['on_way'], data['on_way_count'] = await self.repo.get_delivery_to_client_financial()
+                data['on_way'], data['on_way_count'] = await self.repo.get_in_transit_to_client_financial()
             
             if 'available' in groups:
                 data['discs_count'] = await self.repo.count_available_discs()
