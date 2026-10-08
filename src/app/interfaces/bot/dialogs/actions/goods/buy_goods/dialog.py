@@ -11,7 +11,7 @@ from app.interfaces.bot.dialogs.core import RootWindow, InnerWindow
 
 from .states import BuyGoodsSG as States
 from .event_handler import BuyGoodsEventHandler as EventHandler
-from .getter import BuyGoodsGetter as Getter
+from app.interfaces.bot.dialogs.common import CommonGetter as Getter
 
 buy_goods_dialog = Dialog(
     
@@ -52,7 +52,7 @@ buy_goods_dialog = Dialog(
             sep='\n\n'
         ),
         TextInput(
-            id='type_purchase_price',
+            id='type_price_purchase',
             type_factory=int,
             on_success=EventHandler.on_price_purchase_typed,
             on_error=EventHandler.on_int_error

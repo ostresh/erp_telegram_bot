@@ -2,7 +2,7 @@ from typing import Any, List, Sequence
 from aiogram_dialog import DialogManager
 
 from app.core.db.models import Record
-from app.core.service.menu import RecipientMapping, DeliveryMapping
+from app.interfaces.bot.dialogs.common.mapping import RecipientMapping, DeliveryMapping
 
 
 class CommonGetter:
@@ -88,7 +88,7 @@ class CommonGetter:
         }
         
     @classmethod
-    async def get_records_ids(cls, dialog_manager: DialogManager, **kwargs):
+    async def get_record_ids(cls, dialog_manager: DialogManager, **kwargs):
         """
         Получение id записей
         Метод get_records переопределяется

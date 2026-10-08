@@ -1,10 +1,11 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, exists, and_
-from typing import List, Optional
+from sqlalchemy import func, select, exists, and_
+from typing import List, Optional, Tuple
 
 from app.core.db.repository.base import BaseRepository
 from app.core.db.models import Game, Record
 from app.core.db.statuses import RecordStatus
+from app.core.dto import AvailableGameDTO
 
 import logging
 
@@ -245,5 +246,49 @@ class GameRepository(BaseRepository[Game]):
         except Exception as e:
             logger.exception(f"Error getting Game by game name: {game_name}': {e}")
             raise
+        
+    async def get_available(self) -> List[AvailableGameDTO]:
+        """
+        Получение игр из наличия
+                    
+        Returns:
+            List[AvailableGameDTO]: список игр из наличия, вместе с
+            price_purchase, price_selling, games_count
+        
+        Raises:
+            Exception: При ошибке получения
+        """
+        
+        logger.debug(f"Getting available games")
+                
+        try:
+            stmt = (
+                select(
+                    Game,
+                    func.max(Record.price_purchase).label('price_purchase'),
+                    func.max(Record.price_selling).label('price_selling'),
+                    func.count(Game.id).label('games_count'),
+                )
+                .join(Record, Game.id == Record.game_id)
+                .where(Record.status == RecordStatus.AVAILABLE.value)
+                .group_by(Game.id)
+                .order_by(Game.name)
+            )
+            
+            rows = (await self.session.execute(stmt)).all()
+            return [
+                AvailableGameDTO(
+                    game=row.Game,
+                    price_purchase=row.price_purchase,
+                    price_selling=row.price_selling,
+                    games_count=row.games_count,
+                    
+                )
+                for row in rows
+            ]
+        
+        except Exception as e:
+            logger.exception(f"Error getting available games': {e}")
+            raise   
         
             

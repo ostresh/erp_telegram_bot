@@ -20,8 +20,14 @@ class AddTrnsGetter(CommonGetter):
         utils = await Flow.get_utils(dialog_manager)
         
         utils = sorted(
-            [{'id' : util.id, 'title' : util.title.split('] ')[1]} for util in utils],
-            key=lambda x: x.get('title')
+            [
+                {
+                    'id': util.id,
+                    'title': util.title.partition('] ')[2] if '] ' in util.title else util.title,
+                }
+                for util in utils
+            ],
+            key=lambda x: x['title'],
         )
         
         return {

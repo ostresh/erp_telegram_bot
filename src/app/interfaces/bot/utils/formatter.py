@@ -1,8 +1,11 @@
 from dataclasses import asdict
+from typing import List, Tuple
+from zoneinfo import ZoneInfo
 
+from app.core.dto import AvailableGameDTO
 from app.core.service.finance.schemas import FinanceReport
 from app.interfaces.bot.utils.emoji import Emoji
-from app.core.db.models import Record
+from app.core.db.models import Game, Record
 from app.core.db.statuses import RecordStatus
 from app.interfaces.bot.messages.menu import MenuConstants
 
@@ -91,12 +94,12 @@ class MessageFormatter:
         record_id = f"{Emoji.ID} <b>{record.id}</b>" if record.id is not None else ''
         
         purchase_at = (
-            f" • {Emoji.DATE} {record.purchase_at.strftime('%d.%m.%Y')}"
+            f" • {Emoji.DATE} {record.purchase_at.astimezone(ZoneInfo('Europe/Moscow')).strftime('%d.%m.%Y')}"
             if record.purchase_at is not None
             else ''
         )
         sold_at = (
-            f" • {Emoji.DATE} {record.sold_at.strftime('%d.%m.%Y')}"
+            f" • {Emoji.DATE} {record.sold_at.astimezone(ZoneInfo('Europe/Moscow')).strftime('%d.%m.%Y')}"
             if record.sold_at is not None
             else ''
         )
@@ -112,13 +115,13 @@ class MessageFormatter:
             else ''
         )
         
-        price_buy = (
+        price_purchase = (
             f"{Emoji.PRICE_PURCHASE} <code>{money(record.price_purchase)}</code>р."
             if record.price_purchase is not None
             else f"{Emoji.PRICE_PURCHASE} 0р."
         )
         
-        price_sell = (
+        price_selling = (
             f" • {Emoji.PRICE_SELLING} <code>{money(record.price_selling)}</code>р."
             if record.price_selling is not None
             else f" • {Emoji.PRICE_SELLING} 0р."
@@ -147,7 +150,7 @@ class MessageFormatter:
             f"{record_id}{purchase_at}{sold_at}",
             f"{game}",
             f"{trns}",
-            f"{price_buy}{price_sell}",
+            f"{price_purchase}{price_selling}",
             f"{price_sold}{profit}",
             status_text,
             swap,
@@ -160,6 +163,142 @@ class MessageFormatter:
         formatted += MenuConstants.HORIZONTAL_LINE
         
         return formatted
+    
+    @staticmethod
+    def format_many_records(
+        records: List[Record],
+        chunk_size: int = 7,
+    ) -> List[str]:
+        """
+        Форматирует несколько объектов Record для вывода в Telegram частями.
+
+        Разбивает список записей на чанки по chunk_size элементов
+        и форматирует каждый чанк в отдельную HTML-строку.
+
+        Используется для вывода больших списков записей несколькими
+        сообщениями, чтобы не превысить лимит Telegram на длину
+        сообщения (4096 символов).
+
+        Args:
+            records: список объектов Record с relations
+            chunk_size: количество объектов Record в одном сообщении
+
+        Returns:
+            List[str]: список HTML-строк для вывода в Telegram.
+                    Каждая строка содержит до chunk_size записей
+                    (последняя может содержать меньше)
+
+        Raises:
+            ValueError: если chunk_size меньше 1
+        """
+        if chunk_size < 1:
+            raise ValueError(f"chunk_size должен быть >= 1, получено {chunk_size}")
+
+        if not records:
+            return []
+
+        chunks = []
+
+        for i in range(0, len(records), chunk_size):
+            chunk = records[i:i + chunk_size]
+            formatted_chunk = ''.join(
+                MessageFormatter.format_record(record) for record in chunk
+            )
+            chunks.append(formatted_chunk)
+
+        return chunks
+        
+    
+    @staticmethod
+    def format_available_game(game_dto: AvailableGameDTO) -> str:
+        """
+        Форматирует один Game для вывода в Telegram.
+        
+        Args:
+            game_dto: объект Record с relations
+            
+        Returns:
+            HTML строка для вывода в telegram
+        """
+        
+        money = MessageFormatter.format_money
+        
+        game_name = f"{Emoji.GAME} <b>{game_dto.game.name}</b>" if game_dto.game is not None else ''
+        
+        price_purchase = (
+            f"{Emoji.PRICE_PURCHASE} <code>{money(game_dto.price_purchase)}</code>р."
+            if game_dto.price_purchase is not None
+            else f"{Emoji.PRICE_PURCHASE} 0р."
+        )
+        
+        price_selling = (
+            f" • {Emoji.PRICE_SELLING} <code>{money(game_dto.price_selling)}</code>р."
+            if game_dto.price_selling is not None
+            else f" • {Emoji.PRICE_SELLING} 0р."
+        )
+        
+        games_count = (
+            f" • {Emoji.DISCS_COUNT} <code>{game_dto.games_count}</code> шт."
+            if game_dto.games_count is not None
+            else f" • {Emoji.DISCS_COUNT} 0 шт."
+        )
+        
+        lines = [
+            f"{game_name}",
+            f"{price_purchase}{price_selling}{games_count}",
+        ]
+        
+        formatted = '\n'.join(filter(None, lines))
+        
+        formatted += MenuConstants.HORIZONTAL_LINE
+        
+        return formatted
+    
+    @staticmethod
+    def format_many_available_games(
+        game_dtos: List[AvailableGameDTO],
+        chunk_size: int = 15,
+    ) -> List[str]:
+        """
+        Форматирует несколько объектов Record для вывода в Telegram частями.
+
+        Разбивает список записей на чанки по chunk_size элементов
+        и форматирует каждый чанк в отдельную HTML-строку.
+
+        Используется для вывода больших списков записей несколькими
+        сообщениями, чтобы не превысить лимит Telegram на длину
+        сообщения (4096 символов).
+
+        Args:
+            records: список объектов Record с relations
+            chunk_size: количество объектов Record в одном сообщении
+
+        Returns:
+            List[str]: список HTML-строк для вывода в Telegram.
+                    Каждая строка содержит до chunk_size записей
+                    (последняя может содержать меньше)
+
+        Raises:
+            ValueError: если chunk_size меньше 1
+        """
+        if chunk_size < 1:
+            raise ValueError(f"chunk_size должен быть >= 1, получено {chunk_size}")
+
+        if not game_dtos:
+            return []
+
+        chunks = []
+
+        for i in range(0, len(game_dtos), chunk_size):
+            chunk = game_dtos[i:i + chunk_size]
+            formatted_chunk = ''.join(
+                MessageFormatter.format_available_game(game) for game in chunk
+            )
+            chunks.append(formatted_chunk)
+
+        return chunks
+       
+        
     
     @staticmethod
     def format_row_record(record: Record) -> str:

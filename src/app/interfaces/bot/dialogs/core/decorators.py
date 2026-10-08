@@ -1,9 +1,8 @@
-# app/interfaces/bot/utils/errors.py
-
 import functools
 import logging
 from typing import Any, Callable
 
+from aiogram_dialog import DialogManager, ShowMode
 from sqlalchemy.exc import SQLAlchemyError
 
 logger = logging.getLogger(__name__)
@@ -57,9 +56,11 @@ def handle_db_errors(func: Callable) -> Callable:
         except SQLAlchemyError:
             logger.exception(f'DB error in handler: {func.__qualname__}')
 
-            manager = _find_manager(args, kwargs)
+            manager: DialogManager = _find_manager(args, kwargs)
             message = _find_message(args, kwargs)
 
+            manager.show_mode = ShowMode.DELETE_AND_SEND
+            
             if message is None:
                 callback = _find_callback(args, kwargs)
                 message = callback.message if callback else None

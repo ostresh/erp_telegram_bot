@@ -21,7 +21,7 @@ sell_goods_dialog = Dialog(
     RootWindow(
         *CommonWidgets.game_input(
             EventHandler,
-            switch_inline_query_text=Format('@available ')
+            switch_inline_query_text=Const('@available ')
             ),
         state=States.game_input,
     ),
@@ -32,7 +32,7 @@ sell_goods_dialog = Dialog(
             EventHandler,
         ),
         state=States.select_record_id,
-        getter=Getter.get_records_ids
+        getter=Getter.get_record_ids
     ),
     
     # третий этап - выбор способа получения
@@ -64,7 +64,7 @@ sell_goods_dialog = Dialog(
             sep='\n\n'
         ),
         TextInput(
-            id='type_purchase_price',
+            id='type_price_sold',
             type_factory=int,
             on_success=EventHandler.on_price_sold_typed,
             on_error=EventHandler.on_int_error

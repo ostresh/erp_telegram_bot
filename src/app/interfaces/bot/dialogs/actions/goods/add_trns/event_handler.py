@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from typing import ClassVar
 
 from aiogram.types import CallbackQuery, Message
@@ -5,8 +6,8 @@ from aiogram_dialog import DialogManager, ShowMode
 from aiogram_dialog.widgets.kbd import Select, Button
 from aiogram_dialog.widgets.input import TextInput
 
-from app.core.db.statuses.record import RecordStatus
-from app.interfaces.bot.dialogs.common import CommonEventHandler
+from app.core.db.statuses import RecordStatus
+from app.interfaces.bot.dialogs.common.event_handler import CommonEventHandler
 from app.interfaces.bot.dialogs.core import handle_db_errors
 from app.interfaces.bot.utils.emoji import Emoji
 
@@ -19,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 class AddTrnsEventHandler(CommonEventHandler):
     """
-    Обработчик для order-arrived
+    Обработчик для add-trns
     Наследуется от базового обработчика
     
     Переопределяет:
@@ -42,7 +43,12 @@ class AddTrnsEventHandler(CommonEventHandler):
         Обработчик выбора транзакции
         """
         
+        await callback.answer()
+        
         util = await cls.flow.get_util_by_id(manager, int(item_id))
+        
+        if util is None:
+            return
         
         manager.dialog_data['util_id'] = util.id
         manager.dialog_data['util_title'] = util.title
@@ -50,6 +56,7 @@ class AddTrnsEventHandler(CommonEventHandler):
         await manager.next()
         
     @staticmethod
+    @handle_db_errors
     async def on_price_purchase_input(
         message: Message,
         widget: TextInput,
@@ -69,6 +76,7 @@ class AddTrnsEventHandler(CommonEventHandler):
         await manager.next(show_mode=ShowMode.EDIT)
     
     @classmethod
+    @handle_db_errors
     async def on_add_comment_button(
         cls,
         callback: CallbackQuery,
@@ -79,9 +87,12 @@ class AddTrnsEventHandler(CommonEventHandler):
         Обработчик нажатия на кнопку для ввода комментария
         """
         
+        await callback.answer()
+        
         await manager.switch_to(cls.states.input_comment)
         
     @classmethod
+    @handle_db_errors
     async def on_comment_input(
         cls,
         message: Message,
@@ -101,6 +112,7 @@ class AddTrnsEventHandler(CommonEventHandler):
         await manager.switch_to(cls.states.end_dialog, show_mode=ShowMode.EDIT)
     
     @classmethod
+    @handle_db_errors
     async def on_end_dialog(
         cls,
         callback: CallbackQuery,
@@ -113,15 +125,18 @@ class AddTrnsEventHandler(CommonEventHandler):
         Создает trns и присылает пользователю
         """
         
+        await callback.answer()
+        
         data = {
             'util_id' : manager.dialog_data.get('util_id'),
             'price_purchase' : manager.dialog_data.get('price_purchase'),
             'comment' : manager.dialog_data.get('comment'),
-            'status' : RecordStatus.SOLD.value
+            'status' : RecordStatus.SOLD.value,
+            'sold_at': datetime.now(timezone.utc)
         }
         
         n_record = await cls.flow.create_record(manager, **data)
-        f_record = await cls.flow.set_record_in_dialog_and_format(manager, n_record.id)
+        f_record = await cls.flow.format_record(manager, n_record.id)
         
         await cls.flow.finish_dialog_with_result(manager, f_record)
         

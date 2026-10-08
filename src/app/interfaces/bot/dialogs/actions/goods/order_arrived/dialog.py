@@ -50,6 +50,6 @@ order_arrived_dialog = Dialog(
             Format('<b>{dialog_data[recipient_title]}</b>'),
         ),
         state=States.select_record_id,
-        getter=Getter.get_records_ids
+        getter=Getter.get_record_ids
     ),
 )

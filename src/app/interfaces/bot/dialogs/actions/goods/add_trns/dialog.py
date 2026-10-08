@@ -6,7 +6,6 @@ from aiogram_dialog.widgets.kbd import Button, Group, Select
 from aiogram_dialog.widgets.input import TextInput
 
 from app.interfaces.bot.utils.emoji import Emoji
-from app.interfaces.bot.dialogs.common import CommonEventHandler
 from app.interfaces.bot.dialogs.core import RootWindow, InnerWindow
 
 from .states import AddTrnsSG as States

@@ -1,8 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from app.core.db.repository import GameRepository
 from app.core.db.models import Game
+from app.core.dto import AvailableGameDTO
 from app.core.service.base import BaseService
 
 import logging
@@ -37,7 +38,7 @@ class GameService(BaseService[Game, GameRepository]):
             logger.exception(f"Error checking game is exists: {e}")
             raise
         
-    async def search(self, query: str, limit: int = 50) -> list[Game]:
+    async def search(self, query: str, limit: int = 50) -> List[Game]:
         """
         Поиск игр по названию.
         
@@ -162,6 +163,26 @@ class GameService(BaseService[Game, GameRepository]):
             return await self.repo.get_by_name(game_name)
         except Exception as e:
             logger.exception(f"Error getting Game by game name: {game_name}: {e}")
-            raise    
+            raise
         
+    async def get_available(self) -> List[AvailableGameDTO]:
+        """
+        Получение игр из наличия
+            
+        Returns:
+            List[AvailableGameDTO]: список игр из наличия вместе с
+            ценой покупки (price_purchase), ценой продажи (price_selling)
+            и количеством (games_count)
+        
+        Raises:
+            Exception: При ошибке получения
+        """    
+        
+        logger.info(f"Getting available games")
+                
+        try:
+            return await self.repo.get_available()
+        except Exception as e:
+            logger.exception(f"Error getting available games: {e}")
+            raise
         

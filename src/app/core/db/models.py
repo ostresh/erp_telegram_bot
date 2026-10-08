@@ -109,8 +109,7 @@ class Record(Base):
         bulk_order (BulkOrder): Оптовый заказ, связанный с записью
     
     Properties:
-        is_available (bool): Доступна ли запись для продажи
-        profit (int): Прибыль от продажи (если продано)
+        profit (int): Прибыль от продажи
     """
     
     __tablename__ = 'record'
@@ -152,7 +151,7 @@ class Record(Base):
     price_sold: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
 
     status: Mapped[Optional[str]] = mapped_column(String(50), index=True)
-    swap: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
+    swap: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     reserve: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     comment: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
@@ -173,11 +172,6 @@ class Record(Base):
             raise ValueError("Record должен быть либо игрой, либо утилитой")
         if self.game_id is not None and self.util_id is not None:
             raise ValueError("Record не может быть одновременно игрой и утилитой")
-
-    @property
-    def is_available(self) -> bool:
-        """Проверяет доступна ли запись для продажи"""
-        return self.status == RecordStatus.AVAILABLE.value
 
     @property
     def profit(self) -> Optional[int]:

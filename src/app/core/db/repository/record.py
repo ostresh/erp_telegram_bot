@@ -4,6 +4,13 @@ from sqlalchemy.orm import selectinload
 from typing import List, Tuple, Optional
 
 from app.core.db.models import Record, Game, Utility
+from app.core.dto import (
+    AvailableRecordDTO,
+    AssetsValueDTO,
+    SalesFinancialsDTO,
+    ExpensesIncomesDTO,
+    InTransitToClientDTO
+    )
 from app.core.db.repository.base import BaseRepository
 from app.core.db.statuses import RecordStatus
 
@@ -53,13 +60,13 @@ class RecordRepository(BaseRepository[Record]):
             logger.exception(f"Error checking availability for game '{game_name}': {e}")
             raise
     
-    async def get_available(self) -> List[Tuple[Record, str]]:
+    async def get_available(self) -> List[AvailableRecordDTO]:
         """
         Получение всех игр из наличия
         С группировкой по играм
         
         Return:
-            Список кортежей Record + название игры
+            List[AvailableRecordDTO]: Record и Game.name
             
         Raises:
             Exception: При ошибке чтения
@@ -69,17 +76,26 @@ class RecordRepository(BaseRepository[Record]):
         
         try:
             stmt = (
-                select(Record, Game.name)
+                select(
+                    Record, 
+                    Game.name.label('game_name')
+                    )
                 .join(Game, Record.game_id == Game.id)
                 .where(Record.status == RecordStatus.AVAILABLE.value)
                 .group_by(Record.id, Game.name)
                 .order_by(Record.id)
             )
-            result = await self.session.execute(stmt)
-            records = result.all()
             
-            logger.debug(f"Retrieved {len(records)} available records")
-            return records
+            rows = (await self.session.execute(stmt)).all()
+            logger.debug(f"Retrieved {len(rows)} available records")
+            
+            return [
+                AvailableRecordDTO(
+                    record=row.Record,
+                    game_name=row.game_name
+                )
+                for row in rows
+            ]
         except Exception as e:
             logger.exception(f"Error getting available records: {e}")
             raise
@@ -244,7 +260,8 @@ class RecordRepository(BaseRepository[Record]):
                 select(Record)
                 .options(
                     selectinload(Record.game),
-                    selectinload(Record.utility)
+                    selectinload(Record.utility),
+                    selectinload(Record.bulk_order)
                 )
                 .where(Record.id == item_id)
             )
@@ -261,6 +278,46 @@ class RecordRepository(BaseRepository[Record]):
             logger.exception(f"Error getting Record by id={item_id} with relations: {e}")
             raise
     
+    
+    async def get_many_by_ids_with_relations(
+        self,
+        record_ids: List[int],
+    ) -> List[Record]:
+        """
+        Получает несколько записей со всеми связями одним запросом.
+
+        Использует IN для фильтрации и selectinload для жадной
+        загрузки связей, что минимизирует количество запросов к БД.
+
+        Args:
+            record_ids: список id записей
+
+        Returns:
+            List[Record]: список записей со связями
+        """
+        
+        logger.debug(f"Getting Records by ids={record_ids} with relations")
+        
+        if not record_ids:
+            logger.debug(f"Records with ids={record_ids} not found")
+            return []
+
+        try:
+            stmt = (
+                select(Record)
+                .options(
+                    selectinload(Record.game),
+                    selectinload(Record.utility),
+                    selectinload(Record.bulk_order),
+                )
+                .where(Record.id.in_(record_ids))
+                .order_by(Record.id.asc())
+            )
+            result = await self.session.execute(stmt)
+            return result.scalars().all()
+        except Exception as e:
+            logger.exception(f"Error getting Records by ids={record_ids} with relations: {e}")
+            raise
     
     async def get_price_selling_for_game_in_available(self, game_name: str) -> int:
         """
@@ -303,6 +360,39 @@ class RecordRepository(BaseRepository[Record]):
             
         except Exception as e:
             logger.exception(f'Error getting price_sell for game {game_name} in available : {e}')
+            raise
+    
+    async def get_by_game(self, game_name: str) -> List[Record]:
+        """
+        Получение всех записей определенной игры
+        С группировкой по записям
+        
+        Args:
+            game_name: название игры
+        
+        Return:
+            Список Record
+            
+        Raises:
+            Exception: При ошибке чтения
+        """
+        
+        logger.debug(f"Getting records by game: {game_name}")
+        
+        try:
+            stmt = (
+                select(Record)
+                .join(Game, Record.game_id == Game.id)
+                .where(Game.name == game_name)
+                .order_by(Record.id.asc())
+            )
+            result = await self.session.execute(stmt)
+            records = result.scalars().all()
+            
+            logger.debug(f"Retrieved {len(records)} records")
+            return records
+        except Exception as e:
+            logger.exception(f"Getting records by game {game_name}: {e}")
             raise
     
     async def get_available_by_game(self, game_name: str) -> List[Record]:
@@ -424,12 +514,12 @@ class RecordRepository(BaseRepository[Record]):
     Запросы для финансового отчета
     Сгруппированы по смыслу запроса
     """
-    async def get_expenses_incomes_financials(self) -> Tuple[int, int]:
+    async def get_expenses_incomes_financials(self) -> ExpensesIncomesDTO:
         """
         Получить базовые доходы и расходы одним запросом.
         
         Return:
-            Кортеж (expenses, incomes)
+            ExpensesIncomesDTO: расходы (expenses) и доходы (incomes)
             
         Raises:
             Exception: При ошибке чтения
@@ -456,24 +546,25 @@ class RecordRepository(BaseRepository[Record]):
             
             result = await self.session.execute(stmt)
             row = result.one()
-            
-            expenses = row.expenses
-            incomes = row.incomes
-            logger.debug(f"expenses={expenses}, incomes={incomes}")
-            return expenses, incomes
+
+            logger.debug(f"expenses={row.expenses}, incomes={row.incomes}")
+            return ExpensesIncomesDTO(
+                    expenses=row.expenses,
+                    incomes=row.incomes
+                )
             
         except Exception as e:
             logger.exception(f"Error getting expenses and incomes financials: {e}")
             raise
     
-    async def get_sales_financials(self) -> Tuple[int, int]:
+    async def get_sales_financials(self) -> SalesFinancialsDTO:
         """
         Получить выручку по играм и количество проданных дисков одним запросом.
         
         Выручка - грязная разница доходов и расходов по играм.
         
         Return:
-            Кортеж (revenue, discs_count_sold)
+            SalesFinancialsDTO: выручка (revenue) и количество проданных дисков (discs_count_sold)
             
         Raises:
             Exception: При ошибке чтения
@@ -511,17 +602,18 @@ class RecordRepository(BaseRepository[Record]):
             
             result = await self.session.execute(stmt)
             row = result.one()
-            
-            revenue = row.revenue
-            discs_count_sold = row.discs_count_sold
-            logger.debug(f"Sales financials: revenue={revenue}, sold={discs_count_sold}")
-            return revenue, discs_count_sold
+
+            logger.debug(f"Sales financials: revenue={row.revenue}, sold={row.discs_count_sold}")
+            return SalesFinancialsDTO(
+                revenue=row.revenue,
+                discs_count_sold=row.discs_count_sold
+            )
             
         except Exception as e:
             logger.exception(f"Error getting sales financials: {e}")
             raise
     
-    async def get_in_transit_to_client_financial(self) -> Tuple[int, int]:
+    async def get_in_transit_to_client_financial(self) -> InTransitToClientDTO:
         """
         Получить сумму и количество записей, едущих к покупателю.
         
@@ -529,7 +621,8 @@ class RecordRepository(BaseRepository[Record]):
         так как у них одинаковое условие фильтрации.
         
         Return:
-            Кортеж (on_way, on_way_count)
+            InTransitToClientDTO: сумма (on_way) и количество (on_way_count)
+            записей, едущих к покупателю
             
         Raises:
             Exception: При ошибке чтения
@@ -550,10 +643,11 @@ class RecordRepository(BaseRepository[Record]):
             result = await self.session.execute(stmt)
             row = result.one()
             
-            on_way = row.on_way
-            on_way_count = row.on_way_count
-            logger.debug(f"Delivery to client: sum={on_way}, count={on_way_count}")
-            return on_way, on_way_count
+            logger.debug(f"Delivery to client: sum={row.on_way}, count={row.on_way_count}")
+            return InTransitToClientDTO(
+                on_way=row.on_way,
+                on_way_count=row.on_way_count
+            )
             
         except Exception as e:
             logger.exception(f"Error getting delivery to client: {e}")
@@ -586,14 +680,15 @@ class RecordRepository(BaseRepository[Record]):
             logger.exception(f"Error counting available discs: {e}")
             raise
     
-    async def get_assets_value(self) -> Tuple[int, int]:
+    async def get_assets_value(self) -> AssetsValueDTO:
         """
         Получить стоимость товаров в наличии и 'едет ко мне' одним запросом.
         
         Берёт цену продажи, если она есть, иначе цену покупки.
         
         Return:
-            Кортеж (available_sum, coming_to_me_sum)
+            AssetsValueDTO: стоимость товаров в наличии (available_sum)
+            и едущих ко мне (coming_to_me_sum)
         
         Raises:
             Exception: При ошибке чтения
@@ -625,10 +720,12 @@ class RecordRepository(BaseRepository[Record]):
             result = await self.session.execute(stmt)
             row = result.one()
             
-            available_sum = row.available_sum
-            coming_to_me_sum = row.coming_to_me_sum
-            logger.debug(f"Assets: available={available_sum}, coming={coming_to_me_sum}")
-            return available_sum, coming_to_me_sum
+            
+            logger.debug(f"Assets: available={row.available_sum}, coming={row.coming_to_me_sum}")
+            return AssetsValueDTO(
+                available_sum=row.available_sum,
+                coming_to_me_sum=row.coming_to_me_sum
+            )
             
         except Exception as e:
             logger.exception(f"Error getting assets value: {e}")

@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any
 from aiogram.fsm.state import State
 from aiogram_dialog import Window
 
+from aiogram_dialog.widgets.kbd import Button
 from aiogram_dialog.window import UNSET_PARSE_MODE, _DEFAULT_MARKUP_FACTORY
 from aiogram_dialog.widgets.input import MessageInput
 
@@ -48,22 +49,23 @@ class BaseWindow(Window):
         protect_content: bool | None = None,
         preview_add_transitions: list[Keyboard] | None = None,
         preview_data: GetterVariant = None,
+        back_button: Button | None = None,
         **kwargs: Any,
     ) -> None:
         from app.interfaces.bot.dialogs.common.navigation import CommonDialogNavigation
 
         nav = (
-            CommonDialogNavigation.root_controls
+            CommonDialogNavigation.root_controls(back_button)
             if self.is_root
-            else CommonDialogNavigation.inner_controls
+            else CommonDialogNavigation.inner_controls(back_button)
         )
 
         final_widgets = list(widgets)
         
         if not self._has_input_widget(widgets):
-            from app.interfaces.bot.dialogs.common import CommonEventHandler
+            from app.interfaces.bot.dialogs.common.event_handler.mixins import ValidationMixin
             final_widgets.append(
-                MessageInput(CommonEventHandler.on_unexpected_message)
+                MessageInput(ValidationMixin.on_unexpected_message)
             )
         
         super().__init__(

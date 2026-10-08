@@ -10,6 +10,7 @@ from aiogram_dialog.widgets.kbd import ScrollingGroup, Group, Select, Button
 from app.interfaces.bot.utils.emoji import Emoji
 
 from .event_handler import CommonEventHandler
+from .event_handler.mixins import ValidationMixin
 
 class CommonWidgets:
     
@@ -52,7 +53,7 @@ class CommonWidgets:
                 id='type_game',
                 type_factory=str,
                 on_success=handler.on_game_typed,
-                on_error=CommonEventHandler.on_text_error
+                on_error=ValidationMixin.on_text_error
             ),
         )
         

@@ -57,6 +57,10 @@ class FinanceService:
         для запрошенных полей. Зависимые поля вычисляются
         автоматически в FinanceReport.__post_init__.
         
+        Данные берутся из DTO репозитория:
+            ExpensesIncomesDTO, SalesFinancialsDTO,
+            InTransitToClientDTO, AssetsValueDTO.
+        
         Args:
             fields - список нужных полей (ключи FinanceReport).
                     None - загрузить всё.
@@ -75,19 +79,27 @@ class FinanceService:
             
             # Загружаем только нужные группы
             if 'base' in groups:
-                data['expenses'], data['incomes'] = await self.repo.get_expenses_incomes_financials()
+                base = await self.repo.get_expenses_incomes_financials()
+                data['expenses'] = base.expenses
+                data['incomes'] = base.incomes
             
             if 'sales' in groups:
-                data['revenue'], data['discs_count_sold'] = await self.repo.get_sales_financials()
+                sales = await self.repo.get_sales_financials()
+                data['revenue'] = sales.revenue
+                data['discs_count_sold'] = sales.discs_count_sold
             
             if 'delivery' in groups:
-                data['on_way'], data['on_way_count'] = await self.repo.get_in_transit_to_client_financial()
+                delivery = await self.repo.get_in_transit_to_client_financial()
+                data['on_way'] = delivery.on_way
+                data['on_way_count'] = delivery.on_way_count
             
             if 'available' in groups:
                 data['discs_count'] = await self.repo.count_available_discs()
             
             if 'assets' in groups:
-                data['available_sum'], data['coming_to_me_sum'] = await self.repo.get_assets_value()
+                assets = await self.repo.get_assets_value()
+                data['available_sum'] = assets.available_sum
+                data['coming_to_me_sum'] = assets.coming_to_me_sum
             
             if 'avito' in groups:
                 data['avito_expenses'] = await self.repo.get_expenses_by_transaction(

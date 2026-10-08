@@ -1,55 +1,97 @@
 from aiogram_dialog import Dialog
 from aiogram_dialog.widgets.text import (
-    Const, Format, Multi
+    Const, Format, Jinja, Multi
 )
-from aiogram_dialog.widgets.kbd import Select
+from aiogram_dialog.widgets.kbd import Button, Group
 
 from app.interfaces.bot.utils.emoji import Emoji
 from app.interfaces.bot.dialogs.common import CommonWidgets
 from app.interfaces.bot.dialogs.core import RootWindow, InnerWindow
 
-from .states import OrderArrivedSG as States
-from .event_handler import OrderArrivedEventHandler as EventHandler
-from .getter import OrderArrivedGetter as Getter
+from .states import SwapSG as States
+from .event_handler import SwapEventHandler as EventHandler
+from .getter import SwapGetter as Getter
 
+back_button = Button(
+    Const('← Назад'),
+    id='back_button',
+    on_click=EventHandler.on_back
+)
 
-order_arrived_dialog = Dialog(
+swap_dialog = Dialog(
     
-    #первый этап - выбор получателя 
+    #первый этап - выбор игр, которые получаю, и которые отдаю 
     RootWindow(
         Multi(
             Format('{start_data[menu_text]}'),
-            Const(f'<b>{Emoji.LOCAL_OR_DELIVERY} Выберите, к кому прибыл заказ </b>'),
+            Const(f'{Emoji.SWAP_OUT} ИСХОДЯЩИЕ'),
+            Jinja("""
+                  {%- if dialog_data.get('games_out') -%}
+                  {%- for game in dialog_data.get('games_out') -%}
+                  {{ game | safe }}{% if not loop.last %}{{ '\n' }}{% endif -%}
+                  {%- endfor -%}
+                  {%- endif -%}
+                  """),
+            Const(f'{Emoji.SWAP_IN} ВХОДЯЩИЕ'),
+            Jinja("""
+                {%- if dialog_data.get('games_in') -%}
+                {%- for game in dialog_data.get('games_in') -%}
+                <b>{{dialog_data.get('emoji_game')}} {{ game | safe }}</b>{% if not loop.last %}{{ '\n' }}{% endif -%}
+                {%- endfor -%}
+                {%- endif -%}
+                """),
+            Const(f'<b>{Emoji.SWAP} Выберите игры для обмена </b>'),
             sep='\n\n'
         ),
-        Select(
-            Format('{item[title]}'),
-            id='select_order_recipient',
-            item_id_getter=lambda item: item.get('id'),
-            items='methods',
-            on_click=EventHandler.on_recipient_type_selected
+        Group(
+            Button(
+                Const(f'{Emoji.SWAP_OUT} ВЫБРАТЬ ИСХОДЯЩИЕ'),
+                id='swap_out',
+                on_click=EventHandler.on_swap_out_button,
+            ),
+            Button(
+              Const(f'{Emoji.SWAP_IN} ВЫБРАТЬ ВХОДЯЩИЕ'),
+              id='swap_in',
+              on_click=EventHandler.on_swap_in_button,
+            ),
+            Button(
+                Const('Далее →'),
+                id='go_next',
+                on_click=EventHandler.on_finish_dialog
+            ),
+            width=1
         ),
-        getter=Getter.get_order_recipient,
-        state=States.select_order_recipient
+        state=States.main
     ),
     
-    # второй этап - ввод игры
+    # Окно выбора игр, которые отдаю
     InnerWindow(
         *CommonWidgets.game_input(
             EventHandler,
-            Format('<b>{dialog_data[recipient_title]}</b>'),
-            switch_inline_query_text=Format('@{dialog_data[recipient_type]} ')
-            ),
-        state=States.game_input,
+            Format("{dialog_data[swap_title]}"),
+            switch_inline_query_text=Const('@available ')
+        ),
+        state=States.giving_input,
+        back_button=back_button
     ),
     
-    # третий этап - выбор id записи
+    # выбор id записи для исходящих
     InnerWindow(
         *CommonWidgets.select_record_id(
             EventHandler,
-            Format('<b>{dialog_data[recipient_title]}</b>'),
         ),
         state=States.select_record_id,
-        getter=Getter.get_records_ids
+        getter=Getter.get_record_ids,
+    ),
+    
+    # Окно выбора игр, которые получаю
+    InnerWindow(
+        *CommonWidgets.game_input(
+            EventHandler,
+            Format("{dialog_data[swap_title]}"),
+            switch_inline_query_text=Const('')
+        ),
+        state=States.getting_input,
+        back_button=back_button
     ),
 )

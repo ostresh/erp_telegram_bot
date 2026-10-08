@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from typing import ClassVar
 
 from aiogram.types import CallbackQuery, Message
@@ -6,8 +7,8 @@ from aiogram_dialog.widgets.kbd import Button
 from aiogram_dialog.widgets.input import TextInput
 
 from app.core.db.statuses import RecordStatus
-from app.core.service.menu.mapping import DeliveryMapping
-from app.interfaces.bot.dialogs.common import CommonEventHandler
+from app.interfaces.bot.dialogs.common.mapping import DeliveryMapping
+from app.interfaces.bot.dialogs.common.event_handler import CommonEventHandler
 from app.interfaces.bot.dialogs.core import handle_db_errors
 
 from .states import SellGoodsSG
@@ -44,7 +45,7 @@ class SellGoodsEventHandler(CommonEventHandler):
             return
         
         await callback.answer()
-        await manager.switch_to(cls.states.receive_method)
+        await manager.switch_to(cls.states.receive_method, show_mode=ShowMode.EDIT)
 
         
         
@@ -80,10 +81,11 @@ class SellGoodsEventHandler(CommonEventHandler):
         
         data = {
             'price_sold' : price_sold,
-            'status' : status
+            'status' : status,
+            'sold_at': datetime.now(timezone.utc)
         }
         
         u_record = await cls.flow.update_record(manager, record_id, **data)
-        f_record = await cls.flow.set_record_in_dialog_and_format(manager, u_record.id)
+        f_record = await cls.flow.format_record(manager, u_record.id)
         
         await cls.flow.finish_dialog_with_result(manager, f_record)

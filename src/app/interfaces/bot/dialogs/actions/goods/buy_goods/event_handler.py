@@ -5,11 +5,10 @@ from aiogram_dialog import DialogManager, ShowMode
 from aiogram_dialog.widgets.input import TextInput
 
 from app.core.db.statuses import RecordStatus
-from app.core.service.menu.mapping import DeliveryMapping
-from app.interfaces.bot.dialogs.common import CommonEventHandler
+from app.interfaces.bot.dialogs.common.mapping import DeliveryMapping
+from app.interfaces.bot.dialogs.common import CommonEventHandler, CommonFlow
 from app.interfaces.bot.dialogs.core.decorators import handle_db_errors
 
-from .flow import BuyGoodsFlow
 from .states import BuyGoodsSG
 
 import logging
@@ -22,11 +21,24 @@ class BuyGoodsEventHandler(CommonEventHandler):
     Наследуется от базового обработчика
     
     Переопределяет:
-        - Flow: BuyGoodsFlow
+        - Flow: CommonFlow
         - States: BuyGoodsSG
     """
-    flow: ClassVar[type[BuyGoodsFlow]] = BuyGoodsFlow
+    flow: ClassVar[type[CommonFlow]] = CommonFlow
     states: ClassVar[type[BuyGoodsSG]] = BuyGoodsSG
+    
+    
+    @classmethod
+    async def _after_game_input(cls, manager: DialogManager):
+        """
+        Переопределение стандартного метода (который идет после on_game_typed)
+        """
+
+        logger.info(f"Game '{manager.dialog_data.get('game_name')}' found, proceeding to next step")
+        await manager.switch_to(
+            cls.states.receive_method,
+            show_mode=ShowMode.EDIT,
+        )
     
     @classmethod
     @handle_db_errors
@@ -69,6 +81,6 @@ class BuyGoodsEventHandler(CommonEventHandler):
         }
         
         record = await cls.flow.create_record_from_game_name(manager, game_name, **data)
-        f_record = await cls.flow.set_record_in_dialog_and_format(manager, record.id)
+        f_record = await cls.flow.format_record(manager, record.id)
         
         await cls.flow.finish_dialog_with_result(manager, f_record)

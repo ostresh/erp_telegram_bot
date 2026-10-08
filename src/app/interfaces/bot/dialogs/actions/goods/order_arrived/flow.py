@@ -5,7 +5,7 @@ from aiogram_dialog import DialogManager
 from app.core.db.models import Record
 from app.core.service import RecordService
 from app.core.db.unit_of_work import UnitOfWork
-from app.core.service.menu.mapping import RecipientMapping
+from app.interfaces.bot.dialogs.common.mapping import RecipientMapping
 from app.interfaces.bot.dialogs.common import CommonFlow
 
 import logging

@@ -29,7 +29,7 @@ change_selling_price_dialog = Dialog(
         Multi(
             Format('{start_data[menu_text]}'),
             Format(f'<b>{Emoji.GAME} ИГРА: {{dialog_data[game_name]}}</b>'),
-            Format(f'<b>{Emoji.PRICE_SELLING} Цекущие цены: {{prices}}</b>'),
+            Format(f'<b>{Emoji.PRICE_SELLING} Текущие цены: {{prices}}</b>'),
             Const(f'{Emoji.PRICE_SELLING} Введите цену для продажи:'),
             sep='\n\n'
         ),

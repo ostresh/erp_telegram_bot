@@ -21,9 +21,11 @@ class ActionLabel:
     # Склад и доставка
     IN_TRANSIT_TO_ME = "🚚 КО МНЕ"
     IN_TRANSIT_TO_CLIENT = "🚚 К КЛИЕНТАМ"
-    AVAILABLE = "💿 НАЛИЧИЕ НА СКЛАДЕ"
+    AVAILABLE_RECORDS = "💿 НАЛИЧИЕ (ЗАПИСИ)"
+    AVAILABLE_GAMES = "💿 НАЛИЧИЕ (ИГРЫ)"
     
     # Управление записями
+    CANCEL_ORDER = "🗙 ОТМЕНИТЬ ЗАКАЗ"
     CHANGE_ROW_BY_ID = "🔧 РЕДАКТИРОВАТЬ ЗАПИСЬ"
     DELETE_ROW_BY_ID = "❌ УДАЛИТЬ ЗАПИСЬ"
     

@@ -35,14 +35,17 @@ MENU_TREE = MenuNode(
                         
                         #main-goods-extra
                         MenuNode(
-                            key='goods_delivery',
+                            key='wrh_dlvr',
                             title=MenuTitle.WAREHOUSE_DELIVERY,
                             childrens=[
                                 [
                                     MenuAction(key='to_me', title=ActionLabel.IN_TRANSIT_TO_ME, handler_action='goods_to_me'),
                                     MenuAction(key='to_client', title=ActionLabel.IN_TRANSIT_TO_CLIENT, handler_action='goods_to_client')
                                 ],
-                                MenuAction(key='available', title=ActionLabel.AVAILABLE, handler_action='available'),
+                                
+                                MenuAction(key='available_records', title=ActionLabel.AVAILABLE_RECORDS, handler_action='av-records'),
+                                MenuAction(key='available_games', title=ActionLabel.AVAILABLE_GAMES, handler_action='av-games'),  
+                                
                             ]
                         ),
                         # main-goods-extra-records_management
@@ -50,8 +53,9 @@ MENU_TREE = MenuNode(
                             key='management',
                             title=MenuTitle.RECORDS_MANAGEMENT,
                             childrens=[
-                                MenuAction(key='change_row', title=ActionLabel.CHANGE_ROW_BY_ID, handler_action='change_row_by_id'),
-                                MenuAction(key='delete_row', title=ActionLabel.DELETE_ROW_BY_ID, handler_action='delete_row_by_id'),
+                                MenuAction(key='cancel-order', title=ActionLabel.CANCEL_ORDER, handler_action='cancel-order'),
+                                MenuAction(key='change_record', title=ActionLabel.CHANGE_ROW_BY_ID, handler_action='change_record'),
+                                MenuAction(key='delete_record', title=ActionLabel.DELETE_ROW_BY_ID, handler_action='delete_record'),
                             ]
                         ),
                     ]

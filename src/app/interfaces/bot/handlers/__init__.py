@@ -1,28 +1,14 @@
 from aiogram import Router
 
-from .common.commands import router as commands_router
-from .common.navigation import router as navigation_router
-from .common.search import router as search_router
-from .common.hello import router as hello_router
-from .goods.buy_goods import router as buy_goods_router
-from .goods.sell_goods import router as sell_goods_router
-from .goods.order_arrived import router as order_arrived_router
-from .goods.change_selling_price import router as change_selling_price_router
-from .goods.add_trns import router as add_trns_router
+from .common import COMMON_ROUTERS
+from .goods import GOODS_ROUTERS
 
 
 main_router = Router(name="main")
 
 main_router.include_routers(
-    commands_router,
-    navigation_router,
-    search_router,
-    hello_router,
-    buy_goods_router,
-    sell_goods_router,
-    order_arrived_router,
-    change_selling_price_router,
-    add_trns_router
+    *COMMON_ROUTERS,
+    *GOODS_ROUTERS
 )
 
 __all__ = ["main_router"]

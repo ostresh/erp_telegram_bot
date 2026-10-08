@@ -3,6 +3,7 @@ from typing import List, Tuple, Optional
 
 from app.core.db.repository import RecordRepository
 from app.core.db.models import Record
+from app.core.dto import AvailableRecordDTO
 from app.core.service.base import BaseService
 
 import logging
@@ -38,16 +39,16 @@ class RecordService(BaseService[Record, RecordRepository]):
             raise
     
     
-    async def get_available(self) -> List[Tuple[Record, str]]:
+    async def get_available(self) -> List[AvailableRecordDTO]:
         """
-        Получение всех записей из наличия
-        С группировкой по записям
+        Получение всех игр из наличия
+        С группировкой по играм
         
         Return:
-            Список кортежей Record + название игры
+            List[AvailableRecordDTO]: Record и Game.name
             
         Raises:
-            Exception: При ошибке создания
+            Exception: При ошибке чтения
         """
         
         logger.info("Getting available records")
@@ -58,7 +59,30 @@ class RecordService(BaseService[Record, RecordRepository]):
             logger.exception(f"Error get available records: {e}")
             raise
         
+    
+    async def get_by_game(self, game_name: str) -> List[Record]:
+        """
+        Получение всех записей определенной игры
+        С группировкой по записям
         
+        Args:
+            game_name: название игры
+        
+        Return:
+            Список Record
+            
+        Raises:
+            Exception: При ошибке чтения
+        """
+        
+        logger.info(f"Getting records by game: {game_name}")
+                
+        try:
+            return await self.repo.get_by_game(game_name)
+        except Exception as e:
+            logger.exception(f"Error getting records by game {game_name}: {e}")
+            raise
+       
     async def get_available_by_game(self, game_name: str) -> List[Record]:
         """
         Получение всех записей из наличия определенной игры
@@ -243,6 +267,31 @@ class RecordService(BaseService[Record, RecordRepository]):
             return await self.repo.get_by_id_with_relations(item_id)
         except Exception as e:
             logger.exception(f"Error getting Record by id={item_id} with relations: {e}")
+            raise
+        
+    async def get_many_by_ids_with_relations(
+        self,
+        record_ids: List[int],
+    ) -> List[Record]:
+        """
+        Получает несколько записей со всеми связями одним запросом.
+
+        Использует IN для фильтрации и selectinload для жадной
+        загрузки связей, что минимизирует количество запросов к БД.
+
+        Args:
+            record_ids: список id записей
+
+        Returns:
+            List[Record]: список записей со связями
+        """
+        
+        logger.info(f"Getting Records by ids={record_ids} with relations")
+                        
+        try:
+            return await self.repo.get_many_by_ids_with_relations(record_ids)
+        except Exception as e:
+            logger.exception(f"Error getting Records by ids={record_ids} with relations: {e}")
             raise
         
     async def get_price_selling_for_game_in_available(self, game_name: str) -> int:

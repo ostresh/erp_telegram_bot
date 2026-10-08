@@ -17,9 +17,9 @@ class Emoji:
     INTERVAL_ID = '🔢'
     SELLER = '👤'
     DISCS_COUNT = '💿'
-    ORDER_BULK_COST = '📦💰'
-    ORDER_BULK = '📦'
-    ORDER_BULK_DELIVERY_COST = '🚚💰'
+    BULK_ORDER_COST = '📦💰'
+    BULK_ORDER = '📦'
+    BULK_ORDER_DELIVERY_COST = '🚚💰'
     
     EXPENSES='💸🔻'
     INCOMES='💰🔼'
@@ -41,6 +41,9 @@ class Emoji:
     TAGS = '📃'
     
     ERROR = '❌'
+
+    SWAP_IN = '📥'
+    SWAP_OUT = '📤'
 
 
     

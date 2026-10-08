@@ -2,15 +2,17 @@ from aiogram_dialog import DialogManager
 
 from app.interfaces.bot.dialogs.common import CommonGetter
 
-from .flow import BuyGoodsFlow as Flow
+from .flow import CommentFlow as Flow
 
 
-class BuyGoodsGetter(CommonGetter):
+class CommentGetter(CommonGetter):
     
     @classmethod
     async def get_records(cls, dialog_manager: DialogManager):
         """
         Переопределение стандартного метода
-        Получаем записи определенной игры и определенного получателя
+        Получаем все записи
         """
         return await Flow.get_records(dialog_manager)
+        
+        

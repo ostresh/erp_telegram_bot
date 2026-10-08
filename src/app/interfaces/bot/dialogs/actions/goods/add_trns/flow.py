@@ -22,7 +22,7 @@ class AddTrnsFlow(CommonFlow):
             Список транзакций
         """
         
-        uow: UnitOfWork = manager.middleware_data.get('uow')
+        uow: UnitOfWork = manager.middleware_data['uow']
         
         async with uow() as session:
             service = UtilityService(session)
@@ -39,7 +39,7 @@ class AddTrnsFlow(CommonFlow):
             Utility
         """
         
-        uow: UnitOfWork = manager.middleware_data.get('uow')
+        uow: UnitOfWork = manager.middleware_data['uow']
                 
         async with uow() as session:
             service = UtilityService(session)

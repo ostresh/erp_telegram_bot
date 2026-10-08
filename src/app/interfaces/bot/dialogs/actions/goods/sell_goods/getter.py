@@ -10,6 +10,6 @@ class SellGoodsGetter(CommonGetter):
     async def get_records(cls, manager: DialogManager):
         """
         Переопределение стандартного метода
-        Получаем записи определенной игры и определенного получателя
+        Получаем записи
         """
         return await Flow.get_records(manager)

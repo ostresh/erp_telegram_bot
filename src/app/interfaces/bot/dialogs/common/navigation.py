@@ -1,4 +1,4 @@
-from aiogram_dialog.widgets.kbd import Row, Button, Back
+from aiogram_dialog.widgets.kbd import Row, Button
 from aiogram_dialog.widgets.text import Const
 
 from app.interfaces.bot.messages.menu import MenuConstants
@@ -14,26 +14,52 @@ class CommonDialogNavigation:
     - Возврат по диалогу (для внутренних окон)
     """
     
-    # Для первого окна диалога (возврат в меню)
-    root_controls: Row = Row(
-        Button(
-            Const(MenuConstants.BACK_TEXT),
-            id='back_button',
-            on_click=CommonEventHandler.on_back,
-        ),
-        Button(
-            Const(MenuConstants.CLOSE_TEXT),
-            id='close_button',
-            on_click=CommonEventHandler.on_close,
-        ),
-    )
+    @staticmethod
+    def root_controls(back_button: Button | None = None) -> Row[Button, Button]:
+        """
+        Кнопки управления первым окном
+        Если задан back_button, то ставится кастомная кнопка
+        
+        Args:
+            back_button: Button кастомная
+            
+        Returns:
+            Row с кнопкой "Назад" и "Закрыть"
+        """
+        return Row(
+            back_button or Button(
+                Const(MenuConstants.BACK_TEXT),
+                id='back_menu_button',
+                on_click=CommonEventHandler.on_back_menu,
+            ),
+            Button(
+                Const(MenuConstants.CLOSE_TEXT),
+                id='close_button',
+                on_click=CommonEventHandler.on_close,
+            ),
+        )
     
-    # Для внутренних окон диалога (возврат на предыдущее окно)
-    inner_controls: Row = Row(
-        Back(Const(MenuConstants.BACK_TEXT)),
-        Button(
-            Const(MenuConstants.CLOSE_TEXT),
-            id='close_button',
-            on_click=CommonEventHandler.on_close,
-        ),
-    )
+    @staticmethod
+    def inner_controls(back_button: Button | None = None) -> Row[Button, Button]:
+        """
+        Кнопки управления первым окном
+        Если задан back_button, то ставится кастомная кнопка
+        
+        Args:
+            back_button: Button кастомная
+            
+        Returns:
+            Row с кнопкой "Назад" и "Закрыть"
+        """
+        return Row(
+            back_button or Button(
+                Const(MenuConstants.BACK_TEXT),
+                id='back_menu_button',
+                on_click=CommonEventHandler.on_back,
+            ),
+            Button(
+                Const(MenuConstants.CLOSE_TEXT),
+                id='close_button',
+                on_click=CommonEventHandler.on_close,
+            ),
+        )
