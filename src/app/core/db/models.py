@@ -3,7 +3,7 @@ from typing import Optional, List
 from sqlalchemy import String, Integer, Text, DateTime, ForeignKey, BigInteger
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, validates
 
-from app.core.db.statuses import RecordStatus
+from .statuses.bulk_order import BulkOrderStatus
 
 
 class Base(DeclarativeBase):
@@ -228,7 +228,13 @@ class BulkOrder(Base):
     arrived_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
     seller: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    order_status: Mapped[Optional[str]] = mapped_column(String(100), nullable=True, index=True)
+    order_status: Mapped[Optional[str]] = mapped_column(
+        String(100),
+        nullable=False,
+        index=True, 
+        default=BulkOrderStatus.CREATED.value,
+        server_default=BulkOrderStatus.CREATED.value,
+        )
     total_count: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     total_cost: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     delivery_cost: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
