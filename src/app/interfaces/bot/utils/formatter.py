@@ -2,10 +2,11 @@ from dataclasses import asdict
 from typing import List, Tuple
 from zoneinfo import ZoneInfo
 
+from app.core.db.statuses.bulk_order import BulkOrderStatus
 from app.core.dto import AvailableGameDTO
 from app.core.service.finance.schemas import FinanceReport
 from app.interfaces.bot.utils.emoji import Emoji
-from app.core.db.models import Game, Record
+from app.core.db.models import BulkOrder, Game, Record
 from app.core.db.statuses import RecordStatus
 from app.interfaces.bot.messages.menu import MenuConstants
 
@@ -298,49 +299,117 @@ class MessageFormatter:
 
         return chunks
        
-        
-    
     @staticmethod
-    def format_row_record(record: Record) -> str:
+    def format_bulk_order(bulk_order: BulkOrder) -> str:
         """
-        Полное форматирование записи в текстовое сообщение.
-        
-        Выводит все поля записи в человекочитаемом виде
-        
+        Форматирует один объект BulkOrder для вывода в Telegram.
+
         Args:
-            record - объект записи (с загруженными связями game и utility)
-            
-        Return:
-            Строка с полной информацией о записи
+            bulk_order: объект BulkOrder
+
+        Returns:
+            HTML строка для вывода в telegram
         """
-        
-        purchase_date = (
-            record.purchase_at.strftime("%d.%m.%Y") 
-            if record.purchase_at else ''
+
+        money = MessageFormatter.format_money
+
+        order_id = f"{Emoji.ID} <b>{bulk_order.id}</b>" if bulk_order.id is not None else ''
+
+        created_at = (
+            f" • {Emoji.DATE} {bulk_order.created_at.astimezone(ZoneInfo('Europe/Moscow')).strftime('%d.%m.%Y')}"
+            if bulk_order.created_at is not None
+            else ''
         )
-        sold_date = (
-            record.sold_at.strftime("%d.%m.%Y") 
-            if record.sold_at else ''
+        arrived_at = (
+            f" • {Emoji.DATE} {bulk_order.arrived_at.astimezone(ZoneInfo('Europe/Moscow')).strftime('%d.%m.%Y')}"
+            if bulk_order.arrived_at is not None
+            else ''
         )
-        
-        # Связанные объекты (могут быть None)
-        game_name = record.game.name if record.game else ''
-        utility_title = record.utility.title if record.utility else ''
-        
+
+        seller = (
+            f"{Emoji.SELLER} <b>{bulk_order.seller}</b>"
+            if bulk_order.seller
+            else ''
+        )
+
+        total_count = (
+            f"{Emoji.DISCS_COUNT} <code>{bulk_order.total_count}</code> шт."
+            if bulk_order.total_count is not None
+            else f"{Emoji.DISCS_COUNT} 0 шт."
+        )
+
+        total_cost = (
+            f" • {Emoji.BULK_ORDER_COST} <code>{money(bulk_order.total_cost)}</code>р."
+            if bulk_order.total_cost is not None
+            else f" • {Emoji.BULK_ORDER_COST} 0р."
+        )
+
+        delivery_cost = (
+            f"{Emoji.BULK_ORDER_DELIVERY_COST} <code>{money(bulk_order.delivery_cost)}</code>р."
+            if bulk_order.delivery_cost is not None
+            else f"{Emoji.BULK_ORDER_DELIVERY_COST} 0р."
+        )
+
+        status_text = ''
+        if bulk_order.order_status:
+            status = BulkOrderStatus(bulk_order.order_status)
+            status_text = f"{Emoji.STATUS} <b>{status.display_name}</b>"
+
         lines = [
-            f"ID: {record.id}",
-            f"Дата покупки: {purchase_date}",
-            f"Дата продажи: {sold_date}",
-            f"Игра: {game_name}",
-            f"Транзакция: {utility_title}",
-            f"Оптовый заказ: {record.bulk_order_id or ''}",
-            f"Цена покупки: {record.price_purchase or 0}",
-            f"Цена продажи: {record.price_selling or 0}",
-            f"Цена продано: {record.price_sold or 0}",
-            f"Статус: {record.status or ''}",
-            f"Обмен: {record.swap or ''}",
-            f"Бронь: {record.reserve or ''}",
-            f"Комментарий: {record.comment or ''}",
+            f"{order_id}{created_at}{arrived_at}",
+            seller,
+            f"{total_count}{total_cost}",
+            delivery_cost,
+            status_text,
         ]
-        
-        return '\n'.join(lines)
+
+        formatted = '\n'.join(filter(None, lines))
+
+        formatted += MenuConstants.HORIZONTAL_LINE
+
+        return formatted
+
+    @staticmethod
+    def format_many_bulk_orders(
+        bulk_orders: List[BulkOrder],
+        chunk_size: int = 7,
+    ) -> List[str]:
+        """
+        Форматирует несколько объектов BulkOrder для вывода в Telegram частями.
+
+        Разбивает список оптовых заказов на чанки по chunk_size элементов
+        и форматирует каждый чанк в отдельную HTML-строку.
+
+        Используется для вывода больших списков заказов несколькими
+        сообщениями, чтобы не превысить лимит Telegram на длину
+        сообщения (4096 символов).
+
+        Args:
+            bulk_orders: список объектов BulkOrder
+            chunk_size: количество объектов BulkOrder в одном сообщении
+
+        Returns:
+            List[str]: список HTML-строк для вывода в Telegram.
+                    Каждая строка содержит до chunk_size заказов
+                    (последняя может содержать меньше)
+
+        Raises:
+            ValueError: если chunk_size меньше 1
+        """
+        if chunk_size < 1:
+            raise ValueError(f"chunk_size должен быть >= 1, получено {chunk_size}")
+
+        if not bulk_orders:
+            return []
+
+        chunks = []
+
+        for i in range(0, len(bulk_orders), chunk_size):
+            chunk = bulk_orders[i:i + chunk_size]
+            formatted_chunk = ''.join(
+                MessageFormatter.format_bulk_order(order)
+                for order in chunk
+            )
+            chunks.append(formatted_chunk)
+
+        return chunks

@@ -186,3 +186,46 @@ class GameService(BaseService[Game, GameRepository]):
             logger.exception(f"Error getting available games: {e}")
             raise
         
+    async def get_by_names(self, game_names: list[str]) -> List[Game]:
+        """
+        Множественный поиск Game по точному названию игры
+        
+        Args:
+            game_names (list[str]): список названий игр
+            
+        Returns:
+            Список Game
+        
+        Raises:
+            Exception: При ошибке чтения
+        """
+        
+        try:
+            return await self.repo.get_by_names(game_names)
+        except Exception as e:
+            logger.exception(f"Error getting Game by game names: {game_names}: {e}")
+            raise
+        
+    async def get_by_ids(self, ids: List[int]) -> List[Game]:
+        """
+        Получение списка игр по списку id
+
+        Args:
+            ids: список id игр
+
+        Returns:
+            Список найденных Game, отсортированных по названию.
+            Игр, которых нет в БД, в списке не будет.
+
+        Raises:
+            Exception: При ошибке получения
+        """
+
+        logger.info(f"Getting games by ids: {ids}")
+
+        try:
+            return await self.repo.get_by_ids(ids)
+        except Exception as e:
+            logger.exception(f"Error getting games by ids {ids}: {e}")
+            raise
+        

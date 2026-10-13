@@ -70,3 +70,33 @@ class GameValidationMixin:
             return False
 
         return True
+    
+    @staticmethod
+    async def is_bulk_order_id_selected(
+        callback: CallbackQuery,
+        manager: DialogManager,
+    ) -> bool:
+        """
+        Проверяет, выбран ли bulk_order_id.
+
+        Если не выбран:
+            выводит предупреждение пользователю через alert.
+
+        Побочный эффект:
+            При неудаче отвечает на callback с show_alert=True
+
+        Args:
+            callback: CallbackQuery для ответа пользователю
+            manager: DialogManager
+
+        Returns:
+            bool: выбран ли bulk_order_id
+        """
+        if manager.dialog_data.get('bulk_order_id') is None:
+            await callback.answer(
+                "⚠️ Сначала выберите ID оптового заказа!",
+                show_alert=True,
+            )
+            return False
+
+        return True

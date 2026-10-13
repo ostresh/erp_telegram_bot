@@ -238,7 +238,7 @@ class RecordRepository(BaseRepository[Record]):
         except Exception as e:
             logger.exception(f"Error getting records for bulk order id={order_id}: {e}")
             raise
-        
+       
     async def get_by_id_with_relations(self, item_id: int) -> Optional[Record]:
         """
         Получение записи по id с загруженными связями
@@ -342,7 +342,7 @@ class RecordRepository(BaseRepository[Record]):
                 .join(Game, Record.game_id == Game.id)
                 .where(
                     and_(
-                        Record.status == RecordStatus.AVAILABLE,
+                        Record.status == RecordStatus.AVAILABLE.value,
                         Game.name == game_name
                     )
                 )
@@ -360,6 +360,49 @@ class RecordRepository(BaseRepository[Record]):
             
         except Exception as e:
             logger.exception(f'Error getting price_sell for game {game_name} in available : {e}')
+            raise
+        
+    async def get_prices_selling_for_games_in_available(self, game_names: list[str]) -> dict[int, int]:
+        """
+        Получение цен для продажи для списка игр из наличия
+        
+        Args:
+            game_names: Список названия игр
+            
+        Returns:
+           dict[int, int]: {game_id, price_selling}
+        """
+        
+        logger.debug(f'Getting prices_selling for games in available: {game_names}')
+        
+        try:
+            
+            stmt = (
+                select(
+                    Record.game_id.label('game_id'), 
+                    func.max(Record.price_selling).label('price')
+                )
+                .join(Game, Record.game_id == Game.id)
+                .where(
+                    and_(
+                        Record.status == RecordStatus.AVAILABLE.value,
+                        Game.name.in_(game_names)
+                    )
+                )
+                .group_by(Record.game_id)
+            )
+            
+            result = await self.session.execute(stmt)
+            rows = result.all()
+            
+            prices = {row.game_id: row.price or 0 for row in rows}
+            
+            logger.debug(f'Retrieved {len(prices)}prices_selling for game: {game_names}')
+            
+            return prices
+            
+        except Exception as e:
+            logger.exception(f'Error getting prices_selling for games {game_names} in available : {e}')
             raise
     
     async def get_by_game(self, game_name: str) -> List[Record]:

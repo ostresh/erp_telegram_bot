@@ -217,7 +217,6 @@ class GameRepository(BaseRepository[Game]):
             logger.exception(f"Error getting delivery to me games for query '{query}': {e}")
             raise
         
-        
     async def get_by_name(self, game_name: str) -> Optional[Game]:
         """
         Поиск Game по точному названию игры
@@ -245,6 +244,35 @@ class GameRepository(BaseRepository[Game]):
         
         except Exception as e:
             logger.exception(f"Error getting Game by game name: {game_name}': {e}")
+            raise
+        
+    async def get_by_names(self, game_names: list[str]) -> List[Game]:
+        """
+        Множественный поиск Game по точному названию игры
+        
+        Args:
+            game_names (list[str]): список названий игр
+            
+        Returns:
+            Список Game
+        
+        Raises:
+            Exception: При ошибке чтения
+        """
+        
+        logger.debug(f"Getting Game by game names: {game_names}")
+        
+        try:
+            stmt = (
+                select(Game)
+                .where(Game.name.in_(game_names))
+            )
+            
+            result = await self.session.execute(stmt)
+            return result.scalars().all()
+        
+        except Exception as e:
+            logger.exception(f"Error getting Game by game names: {game_names}': {e}")
             raise
         
     async def get_available(self) -> List[AvailableGameDTO]:
@@ -291,4 +319,39 @@ class GameRepository(BaseRepository[Game]):
             logger.exception(f"Error getting available games': {e}")
             raise   
         
+    async def get_by_ids(self, ids: List[int]) -> List[Game]:
+        """
+        Получение списка игр по списку id
+
+        Args:
+            ids: список id игр
+
+        Returns:
+            Список найденных Game, отсортированных по названию.
+            Игр, которых нет в БД, в списке не будет.
+
+        Raises:
+            Exception: При ошибке чтения
+        """
+
+        logger.debug(f"Getting games by ids: {ids}")
+
+        if not ids:
+            return []
+
+        try:
+            stmt = (
+                select(Game)
+                .where(Game.id.in_(ids))
+                .order_by(Game.name)
+            )
+
+            result = await self.session.execute(stmt)
+            games = result.scalars().all()
+
+            logger.debug(f"Games by ids: found {len(games)} of {len(ids)} requested")
+            return games
+        except Exception as e:
+            logger.exception(f"Error getting games by ids {ids}: {e}")
+            raise
             

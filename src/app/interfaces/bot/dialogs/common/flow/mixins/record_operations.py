@@ -36,7 +36,7 @@ class RecordOperationsMixin:
         return MessageFormatter.format_record(record)
 
     @staticmethod
-    async def format_many_records(manager: DialogManager, record_ids: List[int], chunk_size: int = 7):
+    async def format_many_records(manager: DialogManager, record_ids: List[int], chunk_size: int = 7) -> List[str]:
         """
         Получает Record по id и форматирует его.
 
@@ -372,4 +372,153 @@ class RecordOperationsMixin:
             records = await record_service.get_in_transit_to_client_by_game(game_name)
             
         return records
+    
+    @staticmethod
+    async def get_records_by_bulk_order_id(manager: DialogManager, bulk_order_id: int) -> List[Record]:
+        """
+        Получение Record определенного оптового заказа
+        
+        Args:
+            manager: DialogManager,
+            bulk_order_id (int): id оптового заказа
+            
+        Returns:
+            список найденных Recordd
+        """
+        
+        uow: UnitOfWork = manager.middleware_data['uow']
+                        
+        async with uow() as session:
+            service = RecordService(session)
+            records = await service.get_by_bulk_order_id(bulk_order_id)
+            
+        return records
+    
+    @staticmethod
+    async def get_price_selling_for_game_in_available(
+        manager: DialogManager,
+        record_id: int | None = None,
+        game_id: int | None = None,
+        game_name: str | None = None
+    ) -> int:
+        """
+        Ищет цену для продажи в играх из наличия
+        По record_id или по game_name
+
+        Args:
+            manager: DialogManager
+            record_id (int | None): id записи,
+            game_id (int | None): id игры
+            game_name (str | None): название игры 
+
+        Returns:
+            цена для продажи
+
+        Raises:
+            Игра должна существовать в БД, иначе будет ошибка получения
+        """
+        uow: UnitOfWork = manager.middleware_data["uow"]
+
+        async with uow() as session:
+            record_service = RecordService(session)
+            
+            if record_id:
+                record = await record_service.get_by_id(record_id)
+                game_service = GameService(session)
+                game_name = (await game_service.get_by_id(record.game_id)).name
+                
+            if game_id:
+                game_service = GameService(session)
+                game_name = (await game_service.get_by_id(game_id)).name
+                
+            
+            price_selling = await record_service.get_price_selling_for_game_in_available(
+                game_name=game_name,
+            )
+            
+        return price_selling
+    
+    @staticmethod
+    async def get_prices_selling_for_games_in_available(
+        manager: DialogManager,
+        game_ids: List[int],
+    ) -> dict[int, int]:
+        """
+        Массово ищет цены для продажи в играх из наличия по списку game_id.
+
+        game_id батчем превращаются в game_names и передаются
+        в RecordService.get_prices_selling_for_games_in_available.
+
+        Args:
+            manager: DialogManager
+            game_ids (List[int]): список id игр
+
+        Returns:
+            dict[int, int]: {game_id: price_selling}.
+                Для игр без цены/без записей в наличии вернётся 0.
+
+        Raises:
+            Игра должна существовать в БД, иначе будет ошибка получения
+        """
+        uow: UnitOfWork = manager.middleware_data["uow"]
+
+        if not game_ids:
+            return {}
+
+        async with uow() as session:
+            game_service = GameService(session)
+            record_service = RecordService(session)
+
+            games = await game_service.get_by_ids(game_ids)
+            game_names = [game.name for game in games]
+
+            prices = await record_service.get_prices_selling_for_games_in_available(
+                game_names=game_names,
+            )
+
+        # игры без записей в наличии не попадают в ответ репозитория,
+        # поэтому проставляем им 0 (как и одиночный метод)
+        return {game_id: prices.get(game_id, 0) for game_id in game_ids}
+    
+    @staticmethod
+    async def update_many_records_by_id(
+        manager: DialogManager,
+        records_data: List[dict],
+    ) -> List[Record]:
+        """
+        Обновляет несколько Record РАЗНЫМИ данными в одной транзакции.
+
+        Используется, когда для каждой записи нужны свои значения
+        (например, распределение цены доставки между записями оптового заказа).
+
+        Атомарность: все обновления выполняются в рамках одной сессии/uow,
+        коммит происходит один раз после обновления всех записей.
+        Если любая запись не найдена или произошла ошибка — транзакция
+        откатывается целиком (ни одна запись не будет обновлена).
+
+        Args:
+            manager: DialogManager
+            records_data: список словарей вида {'id': int, **поля_для_обновления}
+                          (например, [{'id': 1, 'price_purchase': 4}, ...])
+
+        Returns:
+            List[Record]: список обновлённых объектов записей
+
+        Raises:
+            ValueError: если в словаре отсутствует ключ 'id'
+        """
+        uow: UnitOfWork = manager.middleware_data["uow"]
+        u_records = []
+
+        async with uow() as session:
+            service = RecordService(session)
+            for data in records_data:
+                record_id = data.get('id')
+                if record_id is None:
+                    raise ValueError("В данных для обновления отсутствует 'id' записи")
+                update_fields = {k: v for k, v in data.items() if k != 'id'}
+                u_record = await service.update(record_id, **update_fields)
+                u_records.append(u_record)
+
+        return u_records
         

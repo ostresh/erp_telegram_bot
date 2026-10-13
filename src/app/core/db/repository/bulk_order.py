@@ -17,7 +17,37 @@ class BulkOrderRepository(BaseRepository[BulkOrder]):
     def __init__(self, session: AsyncSession):
         super().__init__(session, BulkOrder)
         
-    async def get_in_transit_to_me(self) -> List[BulkOrder]:
+    async def get_created(self) -> List[BulkOrder]:
+        """
+        Получение всех новосозданных оптовых заказов
+        
+        Return:
+            Список BulkOrder
+        
+        Raises:
+            Exception: При ошибке чтения
+        """
+        
+        logger.debug("Getting created bulk orders")
+        
+        try:
+            stmt = (
+                select(BulkOrder)
+                .where(
+                    BulkOrder.order_status == BulkOrderStatus.CREATED.value
+                )
+                .order_by(BulkOrder.id.asc())
+            )
+            result = await self.session.execute(stmt)
+            bulk_orders = result.scalars().all()
+        
+            logger.debug(f"Retrieved {len(bulk_orders)} created bulk orders")
+            return bulk_orders
+        except Exception as e:
+            logger.exception(f"Error getting created bulk orders {e}")
+            raise
+        
+    async def get_in_transit(self) -> List[BulkOrder]:
         """
         Получение всех оптовых заказов
         Которые едут ко мне
@@ -46,4 +76,39 @@ class BulkOrderRepository(BaseRepository[BulkOrder]):
             return bulk_orders
         except Exception as e:
             logger.exception(f"Error getting delivery to me bulk orders {e}")
+            raise
+        
+    async def get_many_by_ids(
+        self,
+        order_ids: List[int],
+    ) -> List[BulkOrder]:
+        """
+        Получает несколько записей со всеми связями одним запросом.
+
+        Использует IN для фильтрации и selectinload для жадной
+        загрузки связей, что минимизирует количество запросов к БД.
+
+        Args:
+            record_ids: список id записей
+
+        Returns:
+            List[Record]: список записей со связями
+        """
+        
+        logger.debug(f"Getting BulkOrder by ids={order_ids}")
+        
+        if not order_ids:
+            logger.debug(f"BulkOrders with ids={order_ids} not found")
+            return []
+
+        try:
+            stmt = (
+                select(BulkOrder)
+                .where(BulkOrder.id.in_(order_ids))
+                .order_by(BulkOrder.id.asc())
+            )
+            result = await self.session.execute(stmt)
+            return result.scalars().all()
+        except Exception as e:
+            logger.exception(f"Error getting BulkOrder by ids={order_ids}: {e}")
             raise

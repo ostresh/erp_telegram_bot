@@ -8,12 +8,12 @@ from .menu.service import MenuService
 from .message_cleanup import MessageCleanupService
 
 __all__ = [
-    DescriptionService,
-    RecordService,
-    BulkOrderService,
-    GameService,
-    UtilityService,
-    FinanceService,
-    MenuService,
-    MessageCleanupService
+    'DescriptionService',
+    'RecordService',
+    'BulkOrderService',
+    'GameService',
+    'UtilityService',
+    'FinanceService',
+    'MenuService',
+    'MessageCleanupService'
 ]

@@ -68,7 +68,7 @@ MENU_TREE = MenuNode(
             key='bulk_orders',
             title=MenuTitle.BULK_ORDERS,
             childrens=[
-                MenuAction(key='new', title=ActionLabel.NEW_BULK_ORDER, handler_action='new_bulk_order'),
+                MenuAction(key='create', title=ActionLabel.NEW_BULK_ORDER, handler_action='create_bulk_order'),
                 MenuAction(key='add_delivery', title=ActionLabel.ADD_DELIVERY_TO_BULK_ORDER, handler_action='add_delivery_to_bulk_order'),
                 MenuAction(key='arrived', title=ActionLabel.BULK_ORDER_ARRIVED, handler_action='bulk_order_arrived'),
                 

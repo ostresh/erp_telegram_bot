@@ -4,8 +4,9 @@ from .finance import (
     AssetsValueDTO,
     ExpensesIncomesDTO,
     SalesFinancialsDTO,
-    InTransitToClientDTO
+    InTransitToClientDTO,
 )
+from .bulk_order import BulkOrderItemDTO, BulkOrderJsonDTO
 
 __all__=[
     'AvailableGameDTO',
@@ -13,5 +14,7 @@ __all__=[
     'AssetsValueDTO',
     'ExpensesIncomesDTO',
     'SalesFinancialsDTO',
-    'InTransitToClientDTO'
+    'InTransitToClientDTO',
+    'BulkOrderJsonDTO',
+    'BulkOrderItemDTO'
 ]

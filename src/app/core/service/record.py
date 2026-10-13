@@ -244,7 +244,7 @@ class RecordService(BaseService[Record, RecordRepository]):
         except Exception as e:
             logger.exception(f"Error get records for bulk order id={order_id}: {e}")
             raise
-    
+        
         
     async def get_by_id_with_relations(self, item_id: int) -> Optional[Record]:
         """
@@ -314,6 +314,25 @@ class RecordService(BaseService[Record, RecordRepository]):
             return await self.repo.get_price_selling_for_game_in_available(game_name)
         except Exception as e:
             logger.exception(f"Error getting price_sell for game in available: {game_name}: {e}")
+            raise
+        
+    async def get_prices_selling_for_games_in_available(self, game_names: list[str]) -> dict[int, int]:
+        """
+        Получение цен для продажи для списка игр из наличия
+        
+        Args:
+            game_names: Список названия игр
+            
+        Returns:
+            dict[int, int]: {game_id, price_selling}
+        """
+        
+        logger.info(f"Getting prices_selling for games in available: {game_names}")
+                                
+        try:
+            return await self.repo.get_prices_selling_for_games_in_available(game_names)
+        except Exception as e:
+            logger.exception(f"Error getting prices_selling for games in available: {game_names}: {e}")
             raise
             
             

@@ -3,7 +3,8 @@ from .mixins import (
     RecordOperationsMixin, 
     MenuMixin, 
     DialogCompletionMixin,
-    GameOperationsMixin
+    GameOperationsMixin,
+    BulkOrderOperationsMixin
 )
 
 class CommonFlow(
@@ -11,7 +12,8 @@ class CommonFlow(
     RecordOperationsMixin, 
     MenuMixin, 
     DialogCompletionMixin,
-    GameOperationsMixin
+    GameOperationsMixin,
+    BulkOrderOperationsMixin
 ):
     """
     Базовый Flow

@@ -48,7 +48,8 @@ class CancelOrderEventHandler(CommonEventHandler):
         data = {
             'price_sold' : None,
             'status' : RecordStatus.AVAILABLE.value,
-            'sold_at' : None
+            'sold_at' : None,
+            'price_selling' : await cls.flow.get_price_selling_for_game_in_available(manager, record_id=record_id)
         }
         
         u_record = await cls.flow.update_record(manager, record_id, **data)

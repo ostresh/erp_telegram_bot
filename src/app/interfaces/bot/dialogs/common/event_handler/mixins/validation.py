@@ -14,6 +14,8 @@ class ValidationMixin:
         error: ValueError,
     ):
         """Ошибка ввода целого числа (цена, ID)."""
+        manager.show_mode = ShowMode.DELETE_AND_SEND
+        await message.delete()
         await message.answer("❌ Введите целое число!")
 
     @staticmethod
@@ -24,6 +26,8 @@ class ValidationMixin:
         error: ValueError,
     ):
         """Ошибка ввода строки."""
+        manager.show_mode = ShowMode.DELETE_AND_SEND
+        await message.delete()
         await message.answer("❌ Введите правильную строку!")
 
     @staticmethod
@@ -35,3 +39,4 @@ class ValidationMixin:
         """Сообщение, отправленное мимо кнопок — удаляется."""
         manager.show_mode = ShowMode.EDIT
         await message.delete()
+        

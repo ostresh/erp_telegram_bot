@@ -121,3 +121,64 @@ class CommonWidgets:
             )
         )
         
+    @staticmethod
+    def select_bulk_order_id(handler: type[CommonEventHandler], *text_widgets: Text) -> tuple[WidgetSrc, ...]:
+        """
+        Базовый шаблон для выбора ID оптового заказа. Позволяет вставить другие виджеты в шаблон
+        
+        Композиция:
+            шапка меню → доп. строки → отформатированная строка оптового заказа → кнопки выбора ID
+        
+        Args:
+            handler: класс EventHandler конкретного диалога
+            widgets: другие виджеты, которые нужно вставить в шаблон
+        """
+        
+        return (
+            Multi(
+                Format('{start_data[menu_text]}'),
+                Jinja("""
+                {%- if dialog_data['f_bulk_order'] -%}                  
+                {{dialog_data['f_bulk_order'] | safe}}
+                {%- endif -%}
+                """),
+                Const(f'{Emoji.BULK_ORDER} Выберите ID оптового заказа:', when='has_multiple'),
+                Const(f'{Emoji.BULK_ORDER} Оптовых заказов нет!', when='is_empty'),
+                sep='\n\n',
+            ),
+            # если больше 15 элементов, подключается пагинация
+            ScrollingGroup(
+                Select(
+                    Format('{item[id]}'),
+                    id="bulk_order_id_select_scroll",
+                    item_id_getter=lambda item: item.get('id'),
+                    items="bulk_order_ids",
+                    on_click=handler.on_bulk_order_id_selected,
+                    type_factory=int
+                ),
+                id="items_scroll",
+                width=3,
+                height=5,
+                when='needs_scrolling'
+            ),
+            
+            # если меньше 15, без пагинации
+            Group(
+                Select(
+                    Format('{item[id]}'),
+                    id="bulk_order_id_select_group",
+                    item_id_getter=lambda item: item.get('id'),
+                    items="bulk_order_ids",
+                    on_click=handler.on_bulk_order_id_selected,
+                    type_factory=int
+                ),
+                width=3,
+                when='needs_plain_group'
+            ),
+            Button(
+                Const('Далее →'),
+                id='select_bulk_order_id_button',
+                on_click=handler.on_select_bulk_order_id_button,
+            ),
+        )
+        
