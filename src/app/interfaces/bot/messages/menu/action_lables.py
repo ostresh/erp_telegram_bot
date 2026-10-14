@@ -34,7 +34,7 @@ class ActionLabel:
     ADD_DELIVERY_TO_BULK_ORDER = "🚚 ДОБАВИТЬ ДОСТАВКУ К ЗАКАЗУ"
     BULK_ORDER_ARRIVED = "✅ ОТМЕТИТЬ ПРИБЫТИЕ ЗАКАЗА"
     BULK_ORDERS_COME_TO_ME = "🚚 В ПУТИ КО МНЕ"
-    BULK_ORDER_BY_ID = "📦 ПОИСК ПО ID"
+    ACTIVE_ORDERS = "📦 АКТИВНЫЕ ЗАКАЗЫ"
     ALL_BULK_ORDERS = "🗃️ ВСЕ ЗАКАЗЫ"
     DELETE_BULK_ORDER = "❌ УДАЛИТЬ ЗАКАЗ"
     

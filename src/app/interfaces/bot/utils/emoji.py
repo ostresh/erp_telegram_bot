@@ -44,6 +44,8 @@ class Emoji:
 
     SWAP_IN = '📥'
     SWAP_OUT = '📤'
+    
+    RECORDS = '📄'
 
 
     

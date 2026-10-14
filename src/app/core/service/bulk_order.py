@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List
+from typing import List, Optional
 import json
 
 from app.core.db.repository import BulkOrderRepository
@@ -332,3 +332,49 @@ class BulkOrderService(BaseService[BulkOrder, BulkOrderRepository]):
         except Exception as e:
             logger.exception(f"Error getting BulkOrder by ids={order_ids}: {e}")
             raise
+        
+    async def get_by_id_with_relations(self, item_id: int) -> Optional[BulkOrder]:
+        """
+        Получение оптового заказа по id с загруженными связями
+        (записи) для полного вывода информации
+        
+        Args:
+            item_id - id записи
+        
+        Return:
+            Объект BulkOrder с загруженными связями или None
+        
+        Raises:
+            Exception: При ошибке получения
+        """
+        logger.debug(f"Getting BulkOder by id={item_id} with relations")
+        
+        try:
+            return await self.repo.get_by_id_with_relations(item_id)
+        except Exception as e:
+            logger.exception(f"Error getting BulkOder by id={item_id} with relations: {e}")
+            raise
+        
+    async def delete(self, bulk_order_id: int) -> bool:
+        """
+        Удаление оптового заказа
+        Вместе с этим удаляются и связанные Records
+        
+        Args:
+            bulk_order_id (int): id оптового заказа
+            
+        Returns:
+            bool удален ли заказ
+        """
+        
+        results = []
+        
+        records = await self.record_service.get_by_bulk_order_id(bulk_order_id)
+        
+        for record in records:
+            results.append(await self.record_service.delete(record.id))
+            
+        results.append(await self.repo.delete(bulk_order_id))
+        
+        return all(results)
+        

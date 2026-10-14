@@ -77,9 +77,8 @@ MENU_TREE = MenuNode(
                     key='view_orders',
                     title=MenuTitle.VIEW_ORDERS,
                     childrens=[
-                        MenuAction(key='come_to_me', title=ActionLabel.BULK_ORDERS_COME_TO_ME, handler_action='bulk_orders_come_to_me'),
                         [
-                            MenuAction(key='by_id', title=ActionLabel.BULK_ORDER_BY_ID, handler_action='bulk_order_by_id'),
+                            MenuAction(key='by_id', title=ActionLabel.ACTIVE_ORDERS, handler_action='active_orders'),
                             MenuAction(key='all', title=ActionLabel.ALL_BULK_ORDERS, handler_action='all_bulk_orders')
                         ],
                     ]

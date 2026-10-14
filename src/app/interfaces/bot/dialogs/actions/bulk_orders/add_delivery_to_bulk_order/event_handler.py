@@ -77,6 +77,8 @@ class AddDeliveryToBulkOrderEventHandler(CommonEventHandler):
         Обработчик ввода цены доставки
         """
         
+        manager.show_mode = ShowMode.EDIT
+        
         price = text
         bulk_order_id = manager.dialog_data.get('bulk_order_id')
         

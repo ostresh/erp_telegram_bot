@@ -1,8 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List
+from typing import List, Optional
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
-from app.core.db.models import BulkOrder
+from app.core.db.models import BulkOrder, Record
 from app.core.db.statuses import BulkOrderStatus
 from app.core.db.repository.base import BaseRepository
 
@@ -111,4 +112,41 @@ class BulkOrderRepository(BaseRepository[BulkOrder]):
             return result.scalars().all()
         except Exception as e:
             logger.exception(f"Error getting BulkOrder by ids={order_ids}: {e}")
+            raise
+        
+    async def get_by_id_with_relations(self, item_id: int) -> Optional[BulkOrder]:
+        """
+        Получение оптового заказа по id с загруженными связями
+        (записи) для полного вывода информации
+        
+        Args:
+            item_id - id записи
+        
+        Return:
+            Объект BulkOrder с загруженными связями или None
+        
+        Raises:
+            Exception: При ошибке получения
+        """
+        logger.debug(f"Getting BulkOder by id={item_id} with relations")
+        
+        try:
+            stmt = (
+                select(BulkOrder)
+                .options(
+                    selectinload(BulkOrder.records),
+                )
+                .where(BulkOrder.id == item_id)
+            )
+            result = await self.session.execute(stmt)
+            item = result.scalar()
+            
+            if item:
+                logger.debug(f"BulkOder with id={item_id} found (with relations)")
+            else:
+                logger.debug(f"BulkOder with id={item_id} not found")
+            
+            return item
+        except Exception as e:
+            logger.exception(f"Error getting BulkOder by id={item_id} with relations: {e}")
             raise

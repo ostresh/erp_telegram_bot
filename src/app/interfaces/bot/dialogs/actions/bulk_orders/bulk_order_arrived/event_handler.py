@@ -56,6 +56,8 @@ class BulkOrderArrivedEventHandler(CommonEventHandler):
         Должна быть переопределена в каждом диалоговом обработчике.
         """
         
+        manager.show_mode = ShowMode.EDIT
+        
         if not await cls.flow.is_bulk_order_id_selected(callback, manager):
             return
         

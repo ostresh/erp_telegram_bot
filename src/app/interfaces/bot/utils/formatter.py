@@ -325,7 +325,12 @@ class MessageFormatter:
             if bulk_order.arrived_at is not None
             else ''
         )
-
+        record_ids = (
+            f"{Emoji.RECORDS} {bulk_order.record_ids[0]} - {bulk_order.record_ids[-1]}"
+            if bulk_order.record_ids is not None
+            else ''
+        )
+        
         seller = (
             f"{Emoji.SELLER} <b>{bulk_order.seller}</b>"
             if bulk_order.seller
@@ -357,6 +362,7 @@ class MessageFormatter:
 
         lines = [
             f"{order_id}{created_at}{arrived_at}",
+            record_ids,
             seller,
             f"{total_count}{total_cost}",
             delivery_cost,

@@ -28,29 +28,9 @@ class BulkOrderOperationsMixin:
 
         async with uow() as session:
             service = BulkOrderService(session)
-            bulk_order = await service.get_by_id(bulk_order)
+            bulk_order = await service.get_by_id_with_relations(bulk_order)
 
         return MessageFormatter.format_bulk_order(bulk_order)
-
-    @staticmethod
-    async def format_many_bulk_orders(manager: DialogManager, bulk_orders_ids: List[int], chunk_size: int = 7) -> List[str]:
-        """
-        Получает несколько BulkOrder по id и  форматирует в HTML для отправки в Telegram.
-        
-        Args:
-            manager: DialogManager
-            bulk_order_ids (List[int]): id оптовых заказов 
-
-        Returns:
-            List[str]: список отформатированных строк оптового заказа в HTML
-        """
-        uow: UnitOfWork = manager.middleware_data["uow"]
-
-        async with uow() as session:
-            service = BulkOrderService(session)
-            bulk_orders = await service.get_many_by_ids(bulk_orders_ids)
-
-        return MessageFormatter.format_many_bulk_orders(bulk_orders, chunk_size)
     
     @staticmethod
     async def update_bulk_order(
