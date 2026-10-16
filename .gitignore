@@ -1,11 +1,56 @@
+# --- Virtual environments ---
 venv/
+.venv/
+env/
+ENV/
+
+# --- Python bytecode / cache ---
 __pycache__/
-*.pyc
-db.sqlite3
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# --- Tests / coverage ---
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# --- Environment / secrets ---
 .env
+.env.*
+!.env.example
+
+# --- Databases ---
+db.sqlite3
+*.sqlite3
+*.db
+
+# --- Data / runtime artifacts ---
 data/
+*.log
+celerybeat*
+celerybeat-schedule*
+
+# --- Local-only sources ---
 src/playground
 docs/notes
-*.code-workspace
+.agents/
+
+# --- IDE / editors ---
 .vscode
-celerybeat*
+.idea
+*.code-workspace
+*.swp
+*.swo
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+desktop.ini

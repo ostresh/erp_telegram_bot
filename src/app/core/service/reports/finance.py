@@ -121,6 +121,6 @@ class FinanceService:
             
             return report
             
-        except Exception as e:
-            logger.exception(f"Error generating finance report: {e}")
+        except Exception:
+            logger.exception(f"Error generating finance report")
             raise
