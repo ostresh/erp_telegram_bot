@@ -1,9 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List, Optional, Iterable, Sequence
-from functools import lru_cache
+from typing import List, Optional
 
 from app.core.db.repository import GameRepository
 from app.core.db.models import Game
+from app.core.db.statuses.record import RecordStatus
 from app.core.dto import AvailableGameDTO
 from app.core.service.base import BaseService
 
@@ -13,257 +13,195 @@ logger = logging.getLogger(__name__)
 
 class GameService(BaseService[Game, GameRepository]):
     """Сервис для работы с Game"""
-    
+
+    # Инициализация
+
     def __init__(self, session: AsyncSession):
         super().__init__(session, GameRepository(session))
-        
+
+    # Проверки
+
     async def is_game_exists(self, game_name: str) -> bool:
-        """
-        Проверка, есть ли игра в списке
-        
+        """Проверяет, существует ли игра с указанным названием.
+
         Args:
-            game_name - название игры
-        
-        Return:
-            bool есть ли игра
-        
-        Raises:
-            Exception: При ошибке создания
+            game_name (str): название игры.
+
+        Returns:
+            bool: True, если игра существует.
         """
-
-        logger.info(f"Checking is game exists '{game_name}'")
-
         try:
             return await self.repo.is_game_exists(game_name)
-        except Exception as e:
-            logger.exception(f"Error checking game is exists: {e}")
+        except Exception:
+            logger.exception("Error checking game exists")
             raise
-        
+
     async def is_game_exists_without_prefix(self, name: str) -> bool:
-        """
-        Проверяет существование игры в БД без учёта платформенного префикса.
+        """Проверяет существование игры в БД без учёта платформенного префикса.
 
         Формирует список вариантов имени: чистое имя + имя с каждым известным
-        платформенным префиксом из PlatformMapping.PLATFORM_WITH_PREFIXES.
-        Затем передаёт все варианты в репозиторий для проверки точного совпадения.
-
-        Пример:
-            Вход: "Ghost of Yotei"
-
-            Варианты для поиска:
-                - "Ghost of Yotei"
-                - "[PS4] (Б/У) Ghost of Yotei"
-                - "[PS4] (НОВЫЙ) Ghost of Yotei"
-                - "[PS5] (Б/У) Ghost of Yotei"
-                - "[PS5] (НОВЫЙ) Ghost of Yotei"
+        платформенным префиксом из PlatformMapping.PLATFORM_WITH_PREFIXES,
+        затем проверяет точное совпадение по ним.
 
         Args:
-            name: Название игры без префикса.
+            name (str): название игры без префикса.
 
         Returns:
-            True, если в БД найдена игра с одним из вариантов имени.
-            False, если ни один вариант не найден или передано пустое имя.
+            bool: True, если найдена игра с одним из вариантов имени.
         """
-        from app.interfaces.bot.dialogs.common.mapping import PlatformMapping
+        try:
+            from app.interfaces.bot.dialogs.common.mapping import PlatformMapping
 
-        clean_name = name.strip()
+            clean_name = name.strip()
 
-        variants = [clean_name] + [
-            f"{prefix} {clean_name}"
-            for prefixes in PlatformMapping.PLATFORM_WITH_PREFIXES.values()
-            for prefix in prefixes
-        ]
-        
-        return await self.repo.exists_by_exact_names(variants)
-       
+            variants = [clean_name] + [
+                f"{prefix} {clean_name}"
+                for prefixes in PlatformMapping.PLATFORM_WITH_PREFIXES.values()
+                for prefix in prefixes
+            ]
+
+            return await self.repo.exists_by_exact_names(variants)
+        except Exception:
+            logger.exception("Error checking game exists without prefix")
+            raise
+
+    # Поиск
+
     async def search(self, query: str, limit: int = 50) -> List[Game]:
-        """
-        Поиск игр по названию.
-        
-        Использует регистронезависимый поиск с подстановочным знаком.
-        Например, запрос "witch" найдёт "The Witcher 3".
-        
+        """Ищет игры по названию без учёта регистра.
+
         Args:
-            query: Строка для поиска
-            limit: Максимальное количество результатов (по умолчанию 50)
-            
+            query (str): строка для поиска.
+            limit (int): максимальное количество результатов.
+
         Returns:
-            Список Game, отсортированных по названию
-            
-        Raises:
-            Exception: При ошибке получения
+            List[Game]: найденные игры, отсортированные по названию.
         """
-        
-        logger.info(f"Search games for query: {query}'")
-        
         try:
-            return await self.repo.search(query, limit)
-        except Exception as e:
-            logger.exception(f"Error search games for query {query}: {e}")
+            return await self.repo.search_by_status(query=query, limit=limit)
+        except Exception:
+            logger.exception("Error searching games")
             raise
-        
-    
+
     async def search_available(self, query: str, limit: int = 50) -> List[Game]:
-        """
-        Поиск игр из наличия по названию игры
-        
-        Использует регистронезависимый поиск с подстановочным знаком.
-        Например, запрос "witch" найдёт "The Witcher 3".
-        
+        """Ищет игры из наличия по названию без учёта регистра.
+
         Args:
-            query: Строка для поиска
-            limit: Максимальное количество результатов (по умолчанию 50)
-            
+            query (str): строка для поиска.
+            limit (int): максимальное количество результатов.
+
         Returns:
-            Список найденных игр, отсортированных по названию игры
-            
-        Raises:
-            Exception: При ошибке поиска
+            List[Game]: найденные игры, отсортированные по названию.
         """
-        
-        logger.info(f"Search available games for query: {query}'")
-                
         try:
-            return await self.repo.search_available(query, limit)
-        except Exception as e:
-            logger.exception(f"Error search available games for query {query}: {e}")
+            return await self.repo.search_by_status(
+                query=query, 
+                status=RecordStatus.AVAILABLE, 
+                limit=limit
+            )
+        except Exception:
+            logger.exception("Error searching available games")
             raise
-        
+
     async def search_in_transit_to_client(self, query: str, limit: int = 50) -> List[Game]:
-        """
-        Поиск игр по названию игры, которые едут к покупателю
-        
-        Использует регистронезависимый поиск с подстановочным знаком.
-        Например, запрос "witch" найдёт "The Witcher 3".
-        
+        """Ищет игры, которые едут к покупателю, по названию без учёта регистра.
+
         Args:
-            query: Строка для поиска
-            limit: Максимальное количество результатов (по умолчанию 50)
-            
+            query (str): строка для поиска.
+            limit (int): максимальное количество результатов.
+
         Returns:
-            Список найденных игр, отсортированных по названию игры
-            
-        Raises:
-            Exception: При ошибке поиска
+            List[Game]: найденные игры, отсортированные по названию.
         """
-        
-        logger.info(f"Search delivery to client games for query: {query}'")
-                        
         try:
-            return await self.repo.search_in_transit_to_client(query, limit)
-        except Exception as e:
-            logger.exception(f"Error delivery to client search games for query {query}: {e}")
+            return await self.repo.search_by_status(
+                query=query, 
+                status=RecordStatus.IN_TRANSIT_TO_CLIENT, 
+                limit=limit
+            )
+        except Exception:
+            logger.exception("Error searching in transit to client games")
             raise
-    
+
     async def search_in_transit_to_me(self, query: str, limit: int = 50) -> List[Game]:
-        """
-        Поиск игр по названию игры, которые едут ко мне
-        
-        Использует регистронезависимый поиск с подстановочным знаком.
-        Например, запрос "witch" найдёт "The Witcher 3".
-        
+        """Ищет игры, которые едут ко мне, по названию без учёта регистра.
+
         Args:
-            query: Строка для поиска
-            limit: Максимальное количество результатов (по умолчанию 50)
-            
+            query (str): строка для поиска.
+            limit (int): максимальное количество результатов.
+
         Returns:
-            Список найденных игр, отсортированных по названию игры
-            
-        Raises:
-            Exception: При ошибке поиска
+            List[Game]: найденные игры, отсортированные по названию.
         """
-        
-        logger.info(f"Search delivery to me games for query: {query}'")
-                        
         try:
-            return await self.repo.search_in_transit_to_me(query, limit)
-        except Exception as e:
-            logger.exception(f"Error delivery to me search games for query {query}: {e}")
+            return await self.repo.search_by_status(
+                query=query, 
+                status=RecordStatus.IN_TRANSIT_TO_ME, 
+                limit=limit
+            )
+        except Exception:
+            logger.exception("Error searching in transit to me games")
             raise
-        
+
+    # Получение по имени
+
     async def get_by_name(self, game_name: str) -> Optional[Game]:
-        """
-        Поиск Game по точному названию игры
-        
+        """Получает игру по точному названию.
+
         Args:
-            game_name: название игры
-            
+            game_name (str): название игры.
+
         Returns:
-            Game или None
-        
-        Raises:
-            Exception: При ошибке поиска
+            Optional[Game]: найденная игра или None.
         """
-        
-        logger.info(f"Getting Game by game name: {game_name}")
-        
         try:
             return await self.repo.get_by_name(game_name)
-        except Exception as e:
-            logger.exception(f"Error getting Game by game name: {game_name}: {e}")
+        except Exception:
+            logger.exception("Error getting game by name")
             raise
-        
-    async def get_available(self) -> List[AvailableGameDTO]:
-        """
-        Получение игр из наличия
-            
-        Returns:
-            List[AvailableGameDTO]: список игр из наличия вместе с
-            ценой покупки (price_purchase), ценой продажи (price_selling)
-            и количеством (games_count)
-        
-        Raises:
-            Exception: При ошибке получения
-        """    
-        
-        logger.info(f"Getting available games")
-                
-        try:
-            return await self.repo.get_available()
-        except Exception as e:
-            logger.exception(f"Error getting available games: {e}")
-            raise
-        
+
     async def get_by_names(self, game_names: list[str]) -> List[Game]:
-        """
-        Множественный поиск Game по точному названию игры
-        
+        """Получает игры по списку точных названий.
+
         Args:
-            game_names (list[str]): список названий игр
-            
+            game_names (list[str]): список названий игр.
+
         Returns:
-            Список Game
-        
-        Raises:
-            Exception: При ошибке чтения
+            List[Game]: найденные игры.
         """
-        
         try:
             return await self.repo.get_by_names(game_names)
-        except Exception as e:
-            logger.exception(f"Error getting Game by game names: {game_names}: {e}")
+        except Exception:
+            logger.exception("Error getting games by names")
             raise
-        
+
     async def get_by_ids(self, ids: List[int]) -> List[Game]:
-        """
-        Получение списка игр по списку id
+        """Получает игры по списку id.
 
         Args:
-            ids: список id игр
+            ids (List[int]): список id игр.
 
         Returns:
-            Список найденных Game, отсортированных по названию.
+            List[Game]: найденные игры, отсортированные по названию.
             Игр, которых нет в БД, в списке не будет.
-
-        Raises:
-            Exception: При ошибке получения
         """
-
-        logger.info(f"Getting games by ids: {ids}")
-
         try:
             return await self.repo.get_by_ids(ids)
-        except Exception as e:
-            logger.exception(f"Error getting games by ids {ids}: {e}")
+        except Exception:
+            logger.exception("Error getting games by ids")
             raise
-        
+
+    # Получение списка
+
+    async def get_available(self) -> List[AvailableGameDTO]:
+        """Получает игры из наличия с агрегированными ценами и количеством.
+
+        Returns:
+            List[AvailableGameDTO]: список игр из наличия вместе с
+            price_purchase, price_selling, games_count.
+        """
+        try:
+            return await self.repo.get_available()
+        except Exception:
+            logger.exception("Error getting available games")
+            raise

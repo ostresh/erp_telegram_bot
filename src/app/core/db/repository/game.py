@@ -13,75 +13,51 @@ logger = logging.getLogger(__name__)
 
 class GameRepository(BaseRepository[Game]):
     """Репозиторий для Game. Наследует базовые CRUD, добавляет специфичные методы"""
-    
+
+    # Инициализация
+
     def __init__(self, session: AsyncSession):
         super().__init__(session, Game)
-        
-        
+
+    # Проверки существования
+
     async def is_game_exists(self, game_name: str) -> bool:
-        """
-        Проверка, есть ли игра в списке
-        
+        """Проверяет, существует ли игра с указанным названием.
+
         Args:
-            game_name - название игры
-            
-        Return:
-            bool есть ли игра
-            
-        Raises:
-            Exception: При ошибке чтения
+            game_name (str): название игры.
+
+        Returns:
+            bool: True, если игра существует.
         """
-        
         logger.debug(f"Checking if game '{game_name}' exists")
-        
-        try:
-            stmt = select(
-                exists(
-                    select(Game.name)
-                    .where(Game.name == game_name)
-                )
+
+        stmt = select(
+            exists(
+                select(Game.name)
+                .where(Game.name == game_name)
             )
-            result = await self.session.execute(stmt)
-            exists_result = result.scalar()
-            
-            logger.debug(f"Game '{game_name}' exists: {exists_result}")
-            return exists_result
-        except Exception:
-            logger.exception(f"Error checking if game '{game_name}' exists")
-            raise
-        
-    
+        )
+
+        result = await self.session.execute(stmt)
+        exists_result = result.scalar()
+
+        logger.debug(f"Game '{game_name}' exists: {exists_result}")
+        return exists_result
+
     async def exists_by_exact_names(
         self,
         names: Sequence[str],
     ) -> bool:
-        """
-        Проверяет существование игры в БД без учёта платформенного префикса.
-
-        Формирует список вариантов имени: чистое имя + имя с каждым известным
-        платформенным префиксом из PlatformMapping.PLATFORM_WITH_PREFIXES.
-        Затем передаёт все варианты в репозиторий для проверки точного совпадения.
-
-        Точное совпадение важно: используется IN, а не LIKE/ILIKE, чтобы
-        "Ghost of Yotei" не совпал с "Ghost of Yotei Collector".
-
-        Пример:
-            Вход: "Ghost of Yotei"
-
-            Варианты для поиска:
-                - "Ghost of Yotei"
-                - "[PS4] (Б/У) Ghost of Yotei"
-                - "[PS4] (НОВЫЙ) Ghost of Yotei"
-                - "[PS5] (Б/У) Ghost of Yotei"
-                - "[PS5] (НОВЫЙ) Ghost of Yotei"
+        """Проверяет существование игры по точному совпадению с одним из переданных имён.
 
         Args:
-            name: Название игры без префикса.
+            names (Sequence[str]): список вариантов имени для проверки.
 
         Returns:
-            True, если в БД найдена игра с одним из вариантов имени.
-            False, если ни один вариант не найден или передано пустое имя.
+            bool: True, если найдена хотя бы одна игра.
         """
+        logger.debug(f"Checking game existence by exact names: {names}")
 
         stmt = (
             select(Game.id)
@@ -92,310 +68,153 @@ class GameRepository(BaseRepository[Game]):
         )
 
         result = await self.session.execute(stmt)
+        found = result.scalar_one_or_none() is not None
 
-        return result.scalar_one_or_none() is not None
-       
-    async def search(self, query: str, limit: int = 50) -> List[Game]:
-        """
-        Поиск игр по названию.
-        
+        logger.debug(f"Game found by exact names: {found}")
+        return found
+
+    # Поиск
+
+    async def search_by_status(
+        self, 
+        query: str, 
+        status: Optional[RecordStatus] = None, 
+        limit: int = 50
+    ) -> List[Game]:
+        """Ищет игры по названию с фильтрацией по статусу записей.
+
         Использует регистронезависимый поиск с подстановочным знаком.
         Например, запрос "witch" найдёт "The Witcher 3".
-        
+
         Args:
-            query: Строка для поиска
-            limit: Максимальное количество результатов (по умолчанию 50)
-            
+            query (str): строка для поиска в названии игры.
+            status (RecordStatus): статус записей для фильтрации.
+            limit (int): максимальное количество результатов.
+
         Returns:
-            Список найденных игр, отсортированных по названию
-            
-        Raises:
-            Exception: При ошибке поиска
+            List[Game]: список найденных игр, отсортированных по названию.
         """
+        logger.debug(f"Search games by status '{status.value}' for query: {query}")
         
-        try:
-            
-            stmt = (
-                select(Game)
-                .where(Game.name.ilike(f"%{query}%"))
-                .order_by(Game.name.desc())
-                .limit(limit)
-            )
-            
-            result = await self.session.execute(stmt)
-            games = result.scalars().all()
-            
-            logger.info(f"Game search: found {len(games)} games for query '{query}'")
-            return games
-            
-        except Exception as e:
-            logger.exception(f"Error game search: {e}")
-            raise
+        stmt = (
+            select(Game)
+            .join(Record, Record.game_id == Game.id)
+            .where(Game.name.ilike(f"%{query}%"))
+            .distinct()
+            .order_by(Game.name.desc())
+            .limit(limit)
+        )
         
-    async def search_available(self, query: str, limit: int = 50) -> List[Game]:
-        """
-        Поиск игр из наличия по названию игры
+        if status:
+            stmt = stmt.where(Record.status == status.value)
         
-        Использует регистронезависимый поиск с подстановочным знаком.
-        Например, запрос "witch" найдёт "The Witcher 3".
+        result = await self.session.execute(stmt)
+        games = result.scalars().all()
         
-        Args:
-            query: Строка для поиска
-            limit: Максимальное количество результатов (по умолчанию 50)
-            
-        Returns:
-            Список найденных игр, отсортированных по названию игры
-            
-        Raises:
-            Exception: При ошибке поиска
-        """
-        
-        logger.debug(f"Search available games for query: {query}")
-        
-        try:
-            stmt = (
-                select(Game)
-                .join(Record, Record.game_id == Game.id)
-                .where(
-                    and_(
-                        Game.name.ilike(f"%{query}%"),
-                        Record.status == RecordStatus.AVAILABLE.value
-                    )
-                )
-                .distinct()
-                .order_by(Game.name.desc())
-                .limit(limit)
-            )
-            result = await self.session.execute(stmt)
-            games = result.scalars().all()
-            
-            logger.debug(f"Available games search: found {len(games)} games for query '{query}'")
-            return games
-        except Exception as e:
-            logger.exception(f"Error getting available games for query '{query}': {e}")
-            raise
-        
-    async def search_in_transit_to_client(self, query: str, limit: int = 50) -> List[Game]:
-        """
-        Поиск игр по названию игры, которые едут к покупателю
-        
-        Использует регистронезависимый поиск с подстановочным знаком.
-        Например, запрос "witch" найдёт "The Witcher 3".
-        
-        Args:
-            query: Строка для поиска
-            limit: Максимальное количество результатов (по умолчанию 50)
-            
-        Returns:
-            Список найденных игр, отсортированных по названию игры
-            
-        Raises:
-            Exception: При ошибке поиска
-        """
-        
-        logger.debug(f"Search delivery to client games for query: {query}")
-        
-        try:
-            stmt = (
-                select(Game)
-                .join(Record, Record.game_id == Game.id)
-                .where(
-                    and_(
-                        Game.name.ilike(f"%{query}%"),
-                        Record.status == RecordStatus.IN_TRANSIT_TO_CLIENT.value
-                    )
-                )
-                .distinct()
-                .order_by(Game.name.desc())
-                .limit(limit)
-            )
-            result = await self.session.execute(stmt)
-            games = result.scalars().all()
-            
-            logger.debug(f"Delivery to client games search: found {len(games)} games for query '{query}'")
-            return games
-        except Exception as e:
-            logger.exception(f"Error getting delivery to client games for query '{query}': {e}")
-            raise
-        
-    async def search_in_transit_to_me(self, query: str, limit: int = 50) -> List[Game]:
-        """
-        Поиск игр по названию игры, которые едут ко мне
-        
-        Использует регистронезависимый поиск с подстановочным знаком.
-        Например, запрос "witch" найдёт "The Witcher 3".
-        
-        Args:
-            query: Строка для поиска
-            limit: Максимальное количество результатов (по умолчанию 50)
-            
-        Returns:
-            Список найденных игр, отсортированных по названию игры
-            
-        Raises:
-            Exception: При ошибке поиска
-        """
-        
-        logger.debug(f"Search delivery to me games for query: {query}")
-        
-        try:
-            stmt = (
-                select(Game)
-                .join(Record, Record.game_id == Game.id)
-                .where(
-                    and_(
-                        Game.name.ilike(f"%{query}%"),
-                        Record.status == RecordStatus.IN_TRANSIT_TO_ME.value
-                    )
-                )
-                .distinct()
-                .order_by(Game.name.desc())
-                .limit(limit)
-            )
-            result = await self.session.execute(stmt)
-            games = result.scalars().all()
-            
-            logger.debug(f"Delivery to me games search: found {len(games)} games for query '{query}'")
-            return games
-        except Exception as e:
-            logger.exception(f"Error getting delivery to me games for query '{query}': {e}")
-            raise
-        
+        logger.debug(f"Found {len(games)} games for query '{query}' with status '{status.value}'")
+        return games
+    
+    # Получение по имени
+
     async def get_by_name(self, game_name: str) -> Optional[Game]:
-        """
-        Поиск Game по точному названию игры
-        
+        """Получает игру по точному названию.
+
         Args:
-            game_name: название игры
-            
+            game_name (str): название игры.
+
         Returns:
-            Game или None
-        
-        Raises:
-            Exception: При ошибке чтения
+            Optional[Game]: найденная игра или None.
         """
-        
         logger.debug(f"Getting Game by game name: {game_name}")
-        
-        try:
-            stmt = (
-                select(Game)
-                .where(Game.name == game_name)
-            )
-            
-            result = await self.session.execute(stmt)
-            return result.scalar_one_or_none()
-        
-        except Exception as e:
-            logger.exception(f"Error getting Game by game name: {game_name}': {e}")
-            raise
-        
+
+        stmt = (
+            select(Game)
+            .where(Game.name == game_name)
+        )
+
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
     async def get_by_names(self, game_names: list[str]) -> List[Game]:
-        """
-        Множественный поиск Game по точному названию игры
-        
+        """Получает игры по списку точных названий.
+
         Args:
-            game_names (list[str]): список названий игр
-            
+            game_names (list[str]): список названий игр.
+
         Returns:
-            Список Game
-        
-        Raises:
-            Exception: При ошибке чтения
+            List[Game]: найденные игры.
         """
-        
         logger.debug(f"Getting Game by game names: {game_names}")
-        
-        try:
-            stmt = (
-                select(Game)
-                .where(Game.name.in_(game_names))
-            )
-            
-            result = await self.session.execute(stmt)
-            return result.scalars().all()
-        
-        except Exception as e:
-            logger.exception(f"Error getting Game by game names: {game_names}': {e}")
-            raise
-        
-    async def get_available(self) -> List[AvailableGameDTO]:
-        """
-        Получение игр из наличия
-                    
-        Returns:
-            List[AvailableGameDTO]: список игр из наличия, вместе с
-            price_purchase, price_selling, games_count
-        
-        Raises:
-            Exception: При ошибке получения
-        """
-        
-        logger.debug(f"Getting available games")
-                
-        try:
-            stmt = (
-                select(
-                    Game,
-                    func.max(Record.price_purchase).label('price_purchase'),
-                    func.max(Record.price_selling).label('price_selling'),
-                    func.count(Game.id).label('games_count'),
-                )
-                .join(Record, Game.id == Record.game_id)
-                .where(Record.status == RecordStatus.AVAILABLE.value)
-                .group_by(Game.id)
-                .order_by(Game.name)
-            )
-            
-            rows = (await self.session.execute(stmt)).all()
-            return [
-                AvailableGameDTO(
-                    game=row.Game,
-                    price_purchase=row.price_purchase,
-                    price_selling=row.price_selling,
-                    games_count=row.games_count,
-                    
-                )
-                for row in rows
-            ]
-        
-        except Exception as e:
-            logger.exception(f"Error getting available games': {e}")
-            raise   
-        
+
+        stmt = (
+            select(Game)
+            .where(Game.name.in_(game_names))
+        )
+
+        result = await self.session.execute(stmt)
+        return result.scalars().all()
+
     async def get_by_ids(self, ids: List[int]) -> List[Game]:
-        """
-        Получение списка игр по списку id
+        """Получает игры по списку id.
 
         Args:
-            ids: список id игр
+            ids (List[int]): список id игр.
 
         Returns:
-            Список найденных Game, отсортированных по названию.
+            List[Game]: найденные игры, отсортированные по названию.
             Игр, которых нет в БД, в списке не будет.
-
-        Raises:
-            Exception: При ошибке чтения
         """
-
         logger.debug(f"Getting games by ids: {ids}")
 
         if not ids:
             return []
 
-        try:
-            stmt = (
-                select(Game)
-                .where(Game.id.in_(ids))
-                .order_by(Game.name)
+        stmt = (
+            select(Game)
+            .where(Game.id.in_(ids))
+            .order_by(Game.name)
+        )
+
+        result = await self.session.execute(stmt)
+        games = result.scalars().all()
+
+        logger.debug(f"Games by ids: found {len(games)} of {len(ids)} requested")
+        return games
+
+    # Получение списка
+
+    async def get_available(self) -> List[AvailableGameDTO]:
+        """Получает игры из наличия с агрегированными ценами и количеством.
+
+        Returns:
+            List[AvailableGameDTO]: список игр из наличия вместе с
+            price_purchase, price_selling, games_count.
+        """
+        logger.debug("Getting available games")
+
+        stmt = (
+            select(
+                Game,
+                func.max(Record.price_purchase).label('price_purchase'),
+                func.max(Record.price_selling).label('price_selling'),
+                func.count(Record.id).label('games_count'),
             )
+            .join(Record, Game.id == Record.game_id)
+            .where(Record.status == RecordStatus.AVAILABLE.value)
+            .group_by(Game.id)
+            .order_by(Game.name)
+        )
 
-            result = await self.session.execute(stmt)
-            games = result.scalars().all()
+        rows = (await self.session.execute(stmt)).all()
+        games = [
+            AvailableGameDTO(
+                game=row.Game,
+                price_purchase=row.price_purchase,
+                price_selling=row.price_selling,
+                games_count=row.games_count,
+            )
+            for row in rows
+        ]
 
-            logger.debug(f"Games by ids: found {len(games)} of {len(ids)} requested")
-            return games
-        except Exception as e:
-            logger.exception(f"Error getting games by ids {ids}: {e}")
-            raise
-            
+        logger.debug(f"Retrieved {len(games)} available games")
+        return games
