@@ -38,7 +38,7 @@ class Emoji:
     
     ALL_ASSETS = '🗂️💵'
     
-    TAGS = '📃'
+    DESCRIPTION = '📃'
     
     ERROR = '❌'
 

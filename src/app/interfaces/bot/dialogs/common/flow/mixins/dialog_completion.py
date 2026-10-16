@@ -178,3 +178,69 @@ class DialogCompletionMixin:
             )
 
         await manager.done()
+        
+    @classmethod
+    async def finish_dialog_with_result_without_parse_mode(
+        cls,
+        manager: DialogManager,
+        text: str,
+    ) -> None:
+        """
+        Завершает диалог и отправляет один результат пользователю.
+
+        Поведение:
+            - Сообщение результата помечается на автоудаление
+            - Главное меню отправляется в чат отдельным сообщением
+            - Диалог закрывается через manager.done()
+
+        Для CallbackQuery:
+            редактирует текущее сообщение под результат
+
+        Для Message:
+            удаляет сообщение пользователя и редактирует последнее сообщение диалога
+
+        Побочные эффекты:
+            - Планирует удаление сообщения результата через schedule_message_for_deletion
+            - Отправляет главное меню
+            - Закрывает диалог
+
+        Args:
+            manager: DialogManager
+            text: текст результата для показа пользователю
+        """
+        uow: UnitOfWork = manager.middleware_data["uow"]
+        main_menu: MenuConfig = await cls.get_main_menu(manager)
+        event: Union[Message, CallbackQuery] = manager.event
+
+        if isinstance(event, CallbackQuery):
+            await event.answer()
+
+            await schedule_message_for_deletion(
+                await event.message.edit_text(text=text, parse_mode=None),
+                uow,
+            )
+            await event.message.answer(
+                text=main_menu.text,
+                reply_markup=main_menu.keyboard,
+            )
+
+        elif isinstance(event, Message):
+            await event.delete()
+
+            last_message_id = manager.current_stack().last_message_id
+            await schedule_message_for_deletion(
+                await event.bot.edit_message_text(
+                    text=text,
+                    message_id=last_message_id,
+                    chat_id=event.chat.id,
+                    parse_mode=None
+                ),
+                uow,
+            )
+            await event.answer(
+                text=main_menu.text,
+                reply_markup=main_menu.keyboard,
+            )
+
+        await manager.done()
+        

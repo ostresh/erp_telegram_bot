@@ -144,7 +144,7 @@ MENU_TREE = MenuNode(
                     title=MenuTitle.ANNOUNCEMENT_DESCRIPTION,
                     childrens=[
                         MenuAction(key='view', title=ActionLabel.VIEW_DESCRIPTION, handler_action='view_description'),
-                        MenuAction(key='change', title=ActionLabel.CHANGE_PERSONAL_TAGS, handler_action='change_personal_tags'),
+                        MenuAction(key='change', title=ActionLabel.CHANGE_PERSONAL_TAGS, handler_action='change_description'),
                     ]
                 ),
             ]

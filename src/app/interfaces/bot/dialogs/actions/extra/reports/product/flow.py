@@ -37,8 +37,8 @@ class ProductReportFlow(CommonFlow):
                 period_end_str=period_end_str  
             )
         else:
-            logger.exception(f'Incorrect action_type')
-            raise ValueError()
+            logger.error(f'Incorrect action_type')
+            raise ValueError(f'Incorrect action_type')
         
         
         

@@ -54,8 +54,6 @@ class DeleteRecordEventHandler(CommonEventHandler):
             manager.dialog_data['record_error'] = f'{Emoji.ERROR} Запись не найдена'
         
         await message.delete()
-        
-        await manager.update(show_mode=ShowMode.EDIT)
     
     @classmethod
     @handle_db_errors

@@ -326,7 +326,7 @@ class RecordOperationsMixin:
             service = RecordService(session)
             record = await service.get_by_id(record_id)
             
-        return record
+        return record is not None
     
     @staticmethod
     async def get_available_records_by_game(manager: DialogManager, game_name: str) -> List[Record]:
@@ -428,7 +428,7 @@ class RecordOperationsMixin:
                 game_service = GameService(session)
                 game_name = (await game_service.get_by_id(record.game_id)).name
                 
-            if game_id:
+            elif game_id:
                 game_service = GameService(session)
                 game_name = (await game_service.get_by_id(game_id)).name
                 

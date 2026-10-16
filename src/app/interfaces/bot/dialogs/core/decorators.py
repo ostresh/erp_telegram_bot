@@ -58,8 +58,6 @@ def handle_db_errors(func: Callable) -> Callable:
 
             manager: DialogManager = _find_manager(args, kwargs)
             message = _find_message(args, kwargs)
-
-            manager.show_mode = ShowMode.DELETE_AND_SEND
             
             if message is None:
                 callback = _find_callback(args, kwargs)
@@ -68,6 +66,7 @@ def handle_db_errors(func: Callable) -> Callable:
             if manager is None or message is None:
                 return None
 
+            manager.show_mode = ShowMode.DELETE_AND_SEND
             uow = manager.middleware_data['uow']
             error_message = await message.answer(DB_ERROR_TEXT)
             

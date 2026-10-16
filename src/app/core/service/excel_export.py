@@ -24,7 +24,7 @@ class BaseExcelExporter(ABC):
     TITLE_FONT = Font(bold=True, size=14)
     HEADER_FONT = Font(bold=True, color="FFFFFF")
     HEADER_FILL = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
-    DATE_FORMAT = "DD.MM.YYYY HH:MM"
+    DATE_FORMAT = "dd.MM.yyyy HH:mm"
     _BORDER = Border(
         left=Side(style="thin"),
         right=Side(style="thin"),

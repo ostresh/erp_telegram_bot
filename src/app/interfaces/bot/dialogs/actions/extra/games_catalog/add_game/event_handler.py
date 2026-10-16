@@ -102,7 +102,9 @@ class AddGameEventHandler(CommonEventHandler):
         await callback.answer()
         
         prefixes = [
-            prefix for prefix in PlatformMapping.PREFIXIES
+            prefix
+            for platform in platforms
+            for prefix in PlatformMapping.PLATFORM_WITH_PREFIXES.get(platform)
         ]
         
         game_with_prefixes = [

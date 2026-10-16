@@ -23,8 +23,8 @@ celery_app.conf.update(
 
 celery_app.conf.beat_schedule = {
     'cleanup-expired-messages': {
-        'task': 'app.tasks.cleanup.cleanup_expired_messages',
-        'schedule': crontab(minute=0)
+        'task': 'app.core.tasks.cleanup.cleanup_expired_messages',
+        'schedule': 30
     },
 }
 

@@ -44,6 +44,7 @@ class BulkOrderArrivedEventHandler(CommonEventHandler):
         await manager.update(show_mode=ShowMode.EDIT)
 
     @classmethod
+    @handle_db_errors
     async def on_select_bulk_order_id_button(
         cls,
         callback: CallbackQuery,

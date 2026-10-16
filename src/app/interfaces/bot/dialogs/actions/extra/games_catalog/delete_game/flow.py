@@ -42,7 +42,7 @@ class DeleteGameFlow(CommonFlow):
         
         async with uow() as session:
             service = GameService(session)
-            is_deleted = [await service.delete(id) for id in game_ids]
+            is_deleted = [await service.delete(game_id) for game_id in game_ids]
         
         return all(is_deleted)
 

@@ -42,7 +42,9 @@ class ProductReportEventHandler(CommonEventHandler):
                 
             start = datetime.strptime(period[0], '%d.%m.%Y')
             end = datetime.strptime(period[1], '%d.%m.%Y')
-        except ValueError:
+            
+            period_start, period_end = period
+        except ValueError, IndexError:
             await schedule_message_for_deletion(
                 await message.answer('❌ Неверный формат периода. Пример: 01.10.2026 - 31.10.2026'),
                 manager.middleware_data['uow']
@@ -50,8 +52,6 @@ class ProductReportEventHandler(CommonEventHandler):
             return
 
         await message.delete()
-
-        period_start, period_end = period
         
         message_ = await message.answer(
             '⏳ Формирую отчёт...'
