@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import List
 import logging
 
-from app.core.db.repository import RecordRepository
+from app.core.db.repository.reports.sales import SalesReportRepository
 from app.core.dto.reports.sales import (
     SalesPeriodReport,
     SalesGameItem,
@@ -35,7 +35,7 @@ class SalesService:
         Args:
             session: Активная сессия БД из UnitOfWork
         """
-        self.repo = RecordRepository(session)
+        self.repo = SalesReportRepository(session)
 
     async def get_sales_report(
         self,

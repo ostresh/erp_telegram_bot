@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.core.db.repository import RecordRepository
+from app.core.db.repository.reports.finance import FinanceReportRepository
 from app.core.dto.finance import FinanceReport
 import logging
 
@@ -40,7 +40,7 @@ class FinanceService:
     """
     
     def __init__(self, session: AsyncSession):
-        self.repo = RecordRepository(session)
+        self.repo = FinanceReportRepository(session)
         self.config = config
     
     def _determine_groups(self, fields: list[str] | None) -> set[str]:
