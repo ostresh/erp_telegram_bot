@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List, Optional, Tuple
+from typing import List, Optional, Iterable, Sequence
+from functools import lru_cache
 
 from app.core.db.repository import GameRepository
 from app.core.db.models import Game
@@ -38,6 +39,43 @@ class GameService(BaseService[Game, GameRepository]):
             logger.exception(f"Error checking game is exists: {e}")
             raise
         
+    async def is_game_exists_without_prefix(self, name: str) -> bool:
+        """
+        Проверяет существование игры в БД без учёта платформенного префикса.
+
+        Формирует список вариантов имени: чистое имя + имя с каждым известным
+        платформенным префиксом из PlatformMapping.PLATFORM_WITH_PREFIXES.
+        Затем передаёт все варианты в репозиторий для проверки точного совпадения.
+
+        Пример:
+            Вход: "Ghost of Yotei"
+
+            Варианты для поиска:
+                - "Ghost of Yotei"
+                - "[PS4] (Б/У) Ghost of Yotei"
+                - "[PS4] (НОВЫЙ) Ghost of Yotei"
+                - "[PS5] (Б/У) Ghost of Yotei"
+                - "[PS5] (НОВЫЙ) Ghost of Yotei"
+
+        Args:
+            name: Название игры без префикса.
+
+        Returns:
+            True, если в БД найдена игра с одним из вариантов имени.
+            False, если ни один вариант не найден или передано пустое имя.
+        """
+        from app.interfaces.bot.dialogs.common.mapping import PlatformMapping
+
+        clean_name = name.strip()
+
+        variants = [clean_name] + [
+            f"{prefix} {clean_name}"
+            for prefixes in PlatformMapping.PLATFORM_WITH_PREFIXES.values()
+            for prefix in prefixes
+        ]
+        
+        return await self.repo.exists_by_exact_names(variants)
+       
     async def search(self, query: str, limit: int = 50) -> List[Game]:
         """
         Поиск игр по названию.

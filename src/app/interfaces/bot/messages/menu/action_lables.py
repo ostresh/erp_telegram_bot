@@ -40,10 +40,12 @@ class ActionLabel:
     
     # Отчёты
     FULL_FINANCE_REPORT = "📊 ПОЛНЫЙ ФИНАНСОВЫЙ ОТЧЁТ"
-    PRODUCT_REPORT_PERIOD = "📊 ТОВАРНЫЙ ОТЧЕТ ЗА ПЕРИОД"
+    MOVEMENT_REPORT = "🔄 ОТЧЕТ ПО ДВИЖЕНИЮ ТОВАРОВ"
+    SALES_REPORT = "📈 ОТЧЕТ ПО ПРОДАЖАМ"
     
     # Каталог игр
     ADD_GAME = "🆕 ДОБАВИТЬ ИГРУ"
+    UPDATE_GAME = "✏️ ИЗМЕНИТЬ ИГРУ"
     DELETE_GAME = "❌ УДАЛИТЬ ИГРУ"
     
     # Описание объявления

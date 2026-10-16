@@ -4,7 +4,8 @@ from aiogram_dialog import DialogManager
 
 from app.core.db.models import Record
 from app.core.db.unit_of_work import UnitOfWork
-from app.core.service import GameService, RecordService
+from app.core.service.game import GameService
+from app.core.service.record import RecordService
 from app.interfaces.bot.utils.formatter import MessageFormatter
 
 

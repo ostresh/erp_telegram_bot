@@ -1,8 +1,8 @@
 from aiogram_dialog import DialogManager
 
 from app.core.db.unit_of_work import UnitOfWork
-from app.core.service import MenuService
-from app.core.service.menu.schemas import MenuConfig
+from app.core.service.menu import MenuService
+from app.core.dto.menu import MenuConfig
 
 
 class MenuMixin:

@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select, exists, and_
-from typing import List, Optional, Tuple
+from typing import List, Optional, Sequence
 
 from app.core.db.repository.base import BaseRepository
 from app.core.db.models import Game, Record
@@ -50,7 +50,51 @@ class GameRepository(BaseRepository[Game]):
             logger.exception(f"Error checking if game '{game_name}' exists")
             raise
         
-        
+    
+    async def exists_by_exact_names(
+        self,
+        names: Sequence[str],
+    ) -> bool:
+        """
+        Проверяет существование игры в БД без учёта платформенного префикса.
+
+        Формирует список вариантов имени: чистое имя + имя с каждым известным
+        платформенным префиксом из PlatformMapping.PLATFORM_WITH_PREFIXES.
+        Затем передаёт все варианты в репозиторий для проверки точного совпадения.
+
+        Точное совпадение важно: используется IN, а не LIKE/ILIKE, чтобы
+        "Ghost of Yotei" не совпал с "Ghost of Yotei Collector".
+
+        Пример:
+            Вход: "Ghost of Yotei"
+
+            Варианты для поиска:
+                - "Ghost of Yotei"
+                - "[PS4] (Б/У) Ghost of Yotei"
+                - "[PS4] (НОВЫЙ) Ghost of Yotei"
+                - "[PS5] (Б/У) Ghost of Yotei"
+                - "[PS5] (НОВЫЙ) Ghost of Yotei"
+
+        Args:
+            name: Название игры без префикса.
+
+        Returns:
+            True, если в БД найдена игра с одним из вариантов имени.
+            False, если ни один вариант не найден или передано пустое имя.
+        """
+
+        stmt = (
+            select(Game.id)
+            .where(
+                (Game.name).in_(names)
+            )
+            .limit(1)
+        )
+
+        result = await self.session.execute(stmt)
+
+        return result.scalar_one_or_none() is not None
+       
     async def search(self, query: str, limit: int = 50) -> List[Game]:
         """
         Поиск игр по названию.

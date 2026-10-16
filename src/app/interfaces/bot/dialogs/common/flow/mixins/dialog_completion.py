@@ -4,7 +4,7 @@ from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import DialogManager
 
 from app.core.db.unit_of_work import UnitOfWork
-from app.core.service.menu.schemas import MenuConfig
+from app.core.dto.menu import MenuConfig
 from app.core.utils import schedule_message_for_deletion
 
 
@@ -68,6 +68,46 @@ class DialogCompletionMixin:
                 ),
                 uow,
             )
+            await event.answer(
+                text=main_menu.text,
+                reply_markup=main_menu.keyboard,
+            )
+
+        await manager.done()
+        
+    @classmethod
+    async def finish_dialog(
+        cls,
+        manager: DialogManager,
+    ) -> None:
+        """
+        Завершает диалог.
+
+        Поведение:
+            - Главное меню отправляется в чат отдельным сообщением
+            - Диалог закрывается через manager.done()
+
+        Побочные эффекты:
+            - Отправляет главное меню
+            - Закрывает диалог
+
+        Args:
+            manager: DialogManager
+        """
+        main_menu: MenuConfig = await cls.get_main_menu(manager)
+        event: Union[Message, CallbackQuery] = manager.event
+
+        if isinstance(event, CallbackQuery):
+            await event.answer()
+
+            await event.message.answer(
+                text=main_menu.text,
+                reply_markup=main_menu.keyboard,
+            )
+
+        elif isinstance(event, Message):
+            await event.delete()
+            
             await event.answer(
                 text=main_menu.text,
                 reply_markup=main_menu.keyboard,

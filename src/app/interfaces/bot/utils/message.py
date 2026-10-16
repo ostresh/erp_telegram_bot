@@ -3,7 +3,7 @@ import logging
 from aiogram.types import Message
 
 from app.core.db.unit_of_work import UnitOfWork
-from app.core.service import MessageCleanupService
+from app.core.service.message_cleanup import MessageCleanupService
 
 logger = logging.getLogger(__name__)
 

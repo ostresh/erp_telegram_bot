@@ -46,6 +46,10 @@ class Emoji:
     SWAP_OUT = '📤'
     
     RECORDS = '📄'
+    
+    FINANCE_REPORT = '📊'
+    
+    IN_TRANSIT = '📦'
 
 
     

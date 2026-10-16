@@ -32,5 +32,7 @@ class MenuTitle:
     
     # Второй уровень: Дополнительно
     REPORTS = "💳 ОТЧЁТЫ"
+    PRODUCT_REPORTS = "📦 ОТЧЕТЫ ПО ТОВАРАМ"
+    
     GAMES_CATALOG = "🎮 КАТАЛОГ ИГР"
     ANNOUNCEMENT_DESCRIPTION = "📝 ОПИСАНИЕ ОБЪЯВЛЕНИЯ"

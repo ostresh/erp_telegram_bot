@@ -4,7 +4,7 @@ from aiogram.enums.button_style import ButtonStyle
 from app.core.service.menu.tree import MENU_INDEX
 from app.interfaces.bot.callbacks import MenuCB, ActionCB
 from app.interfaces.bot.messages.menu import MenuConstants
-from .schemas import MenuAction, MenuNode, ChildElement
+from app.core.dto.menu import MenuAction, MenuNode
 
 import logging
 

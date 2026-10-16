@@ -4,7 +4,7 @@ from zoneinfo import ZoneInfo
 
 from app.core.db.statuses.bulk_order import BulkOrderStatus
 from app.core.dto import AvailableGameDTO
-from app.core.service.finance.schemas import FinanceReport
+from app.core.dto.finance import FinanceReport
 from app.interfaces.bot.utils.emoji import Emoji
 from app.core.db.models import BulkOrder, Game, Record
 from app.core.db.statuses import RecordStatus
@@ -31,52 +31,116 @@ class MessageFormatter:
     
     @staticmethod
     def format_finance_report(
-        report: FinanceReport, 
+        report: FinanceReport,
         fields: list[str] | None = None
     ) -> str:
         """
         Форматирование финансового отчёта в HTML.
-        
+
         Универсальная функция: выводит только те поля,
         которые указаны в fields (или все, если fields=None).
         Если поле отсутствует или пустое — строка не выводится.
-        
+
         Args:
             report - финансовый отчёт
             fields - список полей для вывода (ключи FinanceReport)
-            
+
         Return:
             HTML-строка с отчётом
         """
-        data = asdict(report)
         money = MessageFormatter.format_money
-        
-        formatters = {
-            'expenses':       lambda v: f"{Emoji.EXPENSES} <strong>РАСХОДЫ</strong> • <code>{money(v)}</code>р.\n",
-            'incomes':        lambda v: f"{Emoji.INCOMES} <strong>ДОХОДЫ</strong> • <code>{money(v)}</code>р.\n",
-            'revenue':        lambda v: f"{Emoji.REVENUE} <strong>ВЫРУЧКА</strong> • <code>{money(v)}</code>р.\n",
-            'net_profit':     lambda v: f"{Emoji.NET_PROFIT} <strong>ЧИСТАЯ ПРИБЫЛЬ</strong> • <code>{money(v)}</code>р.\n",
-            'avito_expenses': lambda v: f"{Emoji.AVITO} <strong>РАСХОДЫ АВИТО</strong> • <code>{money(v)}</code>р.\n",
-            'discs_count_sold': lambda v: f"{Emoji.DISCS_COUNT} <strong>ДИСКОВ ПРОДАНО</strong> • <code>{v}</code>\n",
-            'avg_revenue':    lambda v: f"{Emoji.AVG_REVENUE} <strong>СРЕДНЯЯ ВЫРУЧКА</strong> • <code>{money(v)}</code>р.\n",
-            'on_account':     lambda v: f"{Emoji.ON_ACCOUNT} <strong>НА СЧЕТУ</strong> • <code>{money(v)}</code>р.\n",
-            'discs_count':    lambda v: f"{Emoji.DISCS_COUNT} <strong>ДИСКОВ В НАЛИЧИИ</strong> • <code>{v}</code>\n",
-            'on_way':         lambda v: f"{Emoji.ON_WAY} <strong>ЕДЕТ К ПОКУПАТЕЛЮ</strong> • <code>{money(v)}</code>р.\n",
-            'on_way_count':   lambda v: f"{Emoji.ON_WAY} <strong>ЕДЕТ К ПОКУПАТЕЛЮ (ШТ.)</strong> • <code>{v}</code>\n",
-            'all_assets':     lambda v: f"{Emoji.ALL_ASSETS} <strong>ВСЕ АКТИВЫ</strong> • <code>{money(v)}</code>р.\n",
-        }
-        
-        # Если поля не указаны — выводим все
-        if fields is None:
-            fields = list(formatters.keys())
-        
-        result = ''
-        for field in fields:
-            value = data.get(field)
-            if value and field in formatters:
-                result += formatters[field](value)
-        
-        return result.strip()
+
+        expenses = (
+            f"{Emoji.EXPENSES} <strong>РАСХОДЫ</strong> • <code>{money(report.expenses)}</code>р."
+            if report.expenses
+            else ''
+        )
+        incomes = (
+            f"{Emoji.INCOMES} <strong>ДОХОДЫ</strong> • <code>{money(report.incomes)}</code>р."
+            if report.incomes
+            else ''
+        )
+        revenue = (
+            f"{Emoji.REVENUE} <strong>ВЫРУЧКА</strong> • <code>{money(report.revenue)}</code>р."
+            if report.revenue
+            else ''
+        )
+        net_profit = (
+            f"{Emoji.NET_PROFIT} <strong>ЧИСТАЯ ПРИБЫЛЬ</strong> • <code>{money(report.net_profit)}</code>р."
+            if report.net_profit
+            else ''
+        )
+        avito_expenses = (
+            f"{Emoji.AVITO} <strong>РАСХОДЫ АВИТО</strong> • <code>{money(report.avito_expenses)}</code>р."
+            if report.avito_expenses
+            else ''
+        )
+        discs_count_sold = (
+            f"{Emoji.DISCS_COUNT} <strong>ДИСКОВ ПРОДАНО</strong> • <code>{report.discs_count_sold}</code>"
+            if report.discs_count_sold
+            else ''
+        )
+        avg_revenue = (
+            f"{Emoji.AVG_REVENUE} <strong>СРЕДНЯЯ ВЫРУЧКА</strong> • <code>{money(report.avg_revenue)}</code>р."
+            if report.avg_revenue
+            else ''
+        )
+        on_account = (
+            f"{Emoji.ON_ACCOUNT} <strong>НА СЧЕТУ</strong> • <code>{money(report.on_account)}</code>р."
+            if report.on_account
+            else ''
+        )
+        discs_count = (
+            f"{Emoji.DISCS_COUNT} <strong>ДИСКОВ В НАЛИЧИИ</strong> • <code>{report.discs_count}</code>шт."
+            if report.discs_count
+            else ''
+        )
+        on_way = (
+            f"{Emoji.IN_TRANSIT} <strong>ЕДЕТ К ПОКУПАТЕЛЮ</strong>\n"
+            f"{Emoji.ON_WAY} <code>{report.on_way}</code>р. • {Emoji.DISCS_COUNT} <code>{money(report.on_way_count)}</code>шт."
+            if report.on_way
+            else ''
+        )
+        all_assets = (
+            f"{Emoji.ALL_ASSETS} <strong>ВСЕ АКТИВЫ</strong> • <code>{money(report.all_assets)}</code>р."
+            if report.all_assets
+            else ''
+        )
+
+        lines = [
+            expenses,
+            incomes,
+            revenue,
+            net_profit,
+            avito_expenses,
+            discs_count_sold,
+            avg_revenue,
+            on_account,
+            discs_count,
+            on_way,
+            all_assets,
+        ]
+
+        # Если поля указаны — выводим только строки выбранных полей
+        if fields is not None:
+            field_lines = {
+                'expenses': expenses,
+                'incomes': incomes,
+                'revenue': revenue,
+                'net_profit': net_profit,
+                'avito_expenses': avito_expenses,
+                'discs_count_sold': discs_count_sold,
+                'avg_revenue': avg_revenue,
+                'on_account': on_account,
+                'discs_count': discs_count,
+                'on_way': on_way,
+                'all_assets': all_assets,
+            }
+            lines = [field_lines[field] for field in fields if field in field_lines]
+
+        formatted = '\n\n'.join(filter(None, lines))
+
+        return formatted
     
     @staticmethod
     def format_record(record: Record) -> str:

@@ -1,4 +1,4 @@
-from app.core.service.menu.schemas import MenuNode, MenuAction
+from app.core.dto.menu import MenuNode, MenuAction
 from app.interfaces.bot.messages.menu import MenuTitle, ActionLabel
 from .build_index import MenuBuildIndex
 
@@ -115,8 +115,15 @@ MENU_TREE = MenuNode(
                     key='reports',
                     title=MenuTitle.REPORTS,
                     childrens=[
+                        MenuNode(
+                            key='product',
+                            title=MenuTitle.PRODUCT_REPORTS,
+                            childrens=[
+                                MenuAction(key='reports', title=ActionLabel.MOVEMENT_REPORT, handler_action='movement_report'),
+                                MenuAction(key='reports', title=ActionLabel.SALES_REPORT, handler_action='sales_report'),
+                            ]
+                        ),
                         MenuAction(key='full_finance', title=ActionLabel.FULL_FINANCE_REPORT, handler_action='full_finance_report'),
-                        MenuAction(key='product_period', title=ActionLabel.PRODUCT_REPORT_PERIOD, handler_action='product_report_period'),
                     ]
                 ),
                 
@@ -126,6 +133,7 @@ MENU_TREE = MenuNode(
                     title=MenuTitle.GAMES_CATALOG,
                     childrens=[
                         MenuAction(key='add', title=ActionLabel.ADD_GAME, handler_action='add_game'),
+                        MenuAction(key='add', title=ActionLabel.UPDATE_GAME, handler_action='update_game'),
                         MenuAction(key='delete', title=ActionLabel.DELETE_GAME, handler_action='delete_game'),
                     ]
                 ),

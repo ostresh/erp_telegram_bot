@@ -2,12 +2,12 @@ from typing import List
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.service.menu.schemas import MenuConfig
+from app.core.dto.menu import MenuConfig
 from app.core.service.menu.tree import MENU_INDEX
 from app.core.service.menu.keyboard_builder import MenuKeyboardBuilder
 from app.interfaces.bot.messages.menu import MenuConstants
 from app.interfaces.bot.utils.formatter import MessageFormatter
-from app.core.service.finance import FinanceService
+from app.core.service.reports.finance import FinanceService
 import logging
 
 logger = logging.getLogger(__name__)
@@ -119,7 +119,7 @@ class MenuService:
         if node.finance_fields:
             finance_text = await self._get_finances(node.finance_fields)
             if finance_text:
-                text = finance_text + '\n\n' + text
+                text = finance_text.replace('\n\n', '\n') + '\n\n' + text
         
         # Добавляем стандартное окончание
         text = text + '\n\n' + MenuConstants.ADDON_TEXT

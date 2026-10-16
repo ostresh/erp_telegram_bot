@@ -9,6 +9,7 @@ from app.core.db.unit_of_work import UnitOfWork
 from app.core.dto.game import AvailableGameDTO
 from app.core.service import GameService
 from app.interfaces.bot.utils.formatter import MessageFormatter
+from app.interfaces.bot.dialogs.common.mapping import PlatformMapping
 
 
 class GameOperationsMixin:
@@ -52,4 +53,21 @@ class GameOperationsMixin:
         """
 
         return MessageFormatter.format_many_available_games(games, chunk_size)
+    
+    @staticmethod
+    def get_names_with_prefixes(game_name: str) -> list[str]:
+        """
+        Добавляет все префиксы для названия игры
+        
+        Args:
+            manager (DialogManager)
+            game_name (str): название игры с префиксом
+        """
+        
+        for prefix in PlatformMapping.PREFIXIES:
+            if game_name.startswith(f'{prefix} '):
+                game_name = game_name[len(prefix) + 1:]
+                break
+
+        return [f'{prefix} {game_name}' for prefix in PlatformMapping.PREFIXIES]
         

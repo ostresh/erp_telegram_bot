@@ -1,4 +1,4 @@
-from app.core.service.menu.schemas import MenuNode, MenuAction
+from app.core.dto.menu import MenuNode, MenuAction
 
 class MenuBuildIndex:
     

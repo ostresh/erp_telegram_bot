@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task(
-    name="app.tasks.cleanup.cleanup_expired_messages",
+    name="app.core.tasks.cleanup.cleanup_expired_messages",
     bind=True,
     max_retries=3,
     default_retry_delay=60,

@@ -32,3 +32,14 @@ class DeliveryMapping:
     ]
 
     TITLES = {method['id']: method['title'] for method in METHODS}
+    
+class PlatformMapping:
+    """Платформы с префиксами"""
+    
+    PLATFORM_WITH_PREFIXES = {
+        "PS4" : ["[PS4] (Б/У)", "[PS4] (НОВЫЙ)"],
+        "PS5" : ["[PS5] (Б/У)", "[PS5] (НОВЫЙ)"]
+    }
+    
+    PREFIXIES = ["[PS4] (Б/У)", "[PS4] (НОВЫЙ)", "[PS5] (Б/У)", "[PS5] (НОВЫЙ)"]
+        

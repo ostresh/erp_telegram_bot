@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.db.repository import RecordRepository
-from app.core.service.finance.schemas import FinanceReport
+from app.core.dto.finance import FinanceReport
 import logging
 
 from config import config

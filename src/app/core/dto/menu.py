@@ -3,8 +3,6 @@ from typing import List, Union, Optional
 
 from aiogram.types import InlineKeyboardMarkup
 
-
-
 @dataclass
 class MenuAction:
     """
