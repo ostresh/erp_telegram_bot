@@ -244,3 +244,20 @@ class RecordService(BaseService[Record, RecordRepository]):
         except Exception:
             logger.exception("Error updating price selling for games")
             raise
+        
+    # Delete
+    
+    async def delete_by_ids(self, record_ids: List[int]) -> bool:
+        """Удаляет записи по списку id.
+        
+        Args:
+            record_ids (List[int]): список id записей для удаления.
+
+        Returns:
+            bool: True, если удалены все запрошенные записи, иначе False.
+        """
+        try:
+            return await self.repo.delete_by_ids(record_ids)
+        except Exception:
+            logger.exception(f"Error deleting records by ids: {record_ids}")
+            raise

@@ -1,7 +1,7 @@
 from typing import List, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, exists, func, and_
+from sqlalchemy import delete, select, update, exists, func, and_
 from sqlalchemy.orm import selectinload
 
 from app.core.db.models import Record, Game
@@ -360,3 +360,39 @@ class RecordRepository(BaseRepository[Record]):
 
         logger.debug(f"Updated price for {count} records of game '{game_name}'")
         return count
+    
+    # Удаление
+    
+    async def delete_by_ids(self, record_ids: List[int]) -> bool:
+        """Удаляет записи по списку id.
+
+        Args:
+            record_ids (List[int]): список id записей для удаления.
+
+        Returns:
+            bool: True, если удалены все запрошенные записи, иначе False.
+        """
+        unique_ids = set(record_ids)
+
+        if not unique_ids:
+            logger.debug("No record ids provided for deletion")
+            return False
+
+        logger.debug(f"Deleting records by ids: {unique_ids}")
+
+        stmt = delete(Record).where(Record.id.in_(unique_ids))
+
+        result = await self.session.execute(stmt)
+        await self.session.flush()
+
+        all_deleted = result.rowcount == len(unique_ids)
+
+        if all_deleted:
+            logger.debug(f"Records with ids={unique_ids} deleted")
+        else:
+            logger.debug(
+                f"Partial deletion for ids={unique_ids}: "
+                f"{result.rowcount} of {len(unique_ids)} removed"
+            )
+
+        return all_deleted

@@ -7,7 +7,7 @@ from aiogram.types import BufferedInputFile
 
 from app.core.db.unit_of_work import CeleryUnitOfWork
 from app.core.service.reports.sales import SalesService
-from app.interfaces.bot.core.celery_bot import get_bot
+from app.interfaces.bot.core.factory import create_bot
 from app.interfaces.bot.utils.message import schedule_message_for_deletion
 from app.core.service.menu.service import MenuService
 
@@ -38,8 +38,8 @@ def generate_movement_report_excel_task(
         period_end_str (str): конец периода в виде строки
     """
     
-    period_start = datetime.strptime(period_start_str, DATE_FORMAT).replace(tzinfo=timezone.ufc)
-    period_end = datetime.strptime(period_end_str, DATE_FORMAT).replace(tzinfo=timezone.ufc)
+    period_start = datetime.strptime(period_start_str, DATE_FORMAT).replace(tzinfo=timezone.utc)
+    period_end = datetime.strptime(period_end_str, DATE_FORMAT).replace(tzinfo=timezone.utc)
     
     logger.info(
         "Start generating sales report for chat_id=%s, message_id=%s, period=[%s, %s]",
@@ -64,10 +64,8 @@ def generate_movement_report_excel_task(
             f"{period_end:%Y-%m-%d}.xlsx"
         )
         
-        bot = get_bot()
-        
-        try:
-            
+        async with create_bot() as bot:
+
             document = BufferedInputFile(
                 excel_bytes,
                 filename=filename
@@ -83,7 +81,7 @@ def generate_movement_report_excel_task(
                         chat_id=chat_id,
                         document=document,
                         caption=caption
-                ), CeleryUnitOfWork
+                ), CeleryUnitOfWork()
             )
             
             await bot.send_message(
@@ -96,9 +94,6 @@ def generate_movement_report_excel_task(
                 chat_id=chat_id,
                 message_id=message_id
             )
-        
-        finally:
-            await bot.session.close()
             
     try:
         asyncio.run(_run())
@@ -136,16 +131,11 @@ async def _send_error_message(
     message_id: int,
     error_text: str, 
 ) -> None:
-    bot = get_bot()
-
-    try:
+    async with create_bot() as bot:
         await schedule_message_for_deletion(
            await bot.edit_message_text(
                 chat_id=chat_id,
                 message_id=message_id,
                 text=error_text,
-            ), CeleryUnitOfWork
+            ), CeleryUnitOfWork()
         )
-        
-    finally:
-        await bot.session.close()

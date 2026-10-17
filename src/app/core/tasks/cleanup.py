@@ -51,13 +51,16 @@ async def _run_cleanup() -> dict:
     """
     Асинхронная часть задачи очистки.
     
-    Использует CeleryUnitOfWork с NullPool.
+    Бот создаётся на каждую задачу, чтобы его aiohttp-сессия была привязана
+    к текущему event loop. Использует CeleryUnitOfWork с NullPool.
     """
     from app.core.db.unit_of_work import CeleryUnitOfWork
     from app.core.service import MessageCleanupService
+    from app.interfaces.bot.core.factory import create_bot
     
-    async with CeleryUnitOfWork() as session:
-        service = MessageCleanupService(session)
-        deleted = await service.cleanup_expired_messages()
-        
-        return {"messages_deleted": deleted}
+    async with create_bot() as bot:
+        async with CeleryUnitOfWork() as session:
+            service = MessageCleanupService(session)
+            deleted = await service.cleanup_expired_messages(bot)
+
+    return {"messages_deleted": deleted}

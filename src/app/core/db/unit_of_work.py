@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-from contextlib import asynccontextmanager
-from typing import AsyncGenerator
+from contextlib import asynccontextmanager, AbstractAsyncContextManager
+from typing import AsyncGenerator, Optional
 import logging
 
 logger = logging.getLogger(__name__)
@@ -78,11 +78,26 @@ class CeleryUnitOfWork:
     
     Использует NullPool чтобы избежать проблем с event loop.
     Каждый вызов задачи создаёт свежую сессию без пула.
+    
+    Поддерживает два способа использования:
+        async with CeleryUnitOfWork() as session:   # экземпляр как контекстный менеджер
+        async with uow() as session:                # экземпляр как фабрика контекстов
     """
     
-    def __init__(self):
-        from app.core.db.config import CelerySessionLocal
-        self.session_factory = CelerySessionLocal
+    def __init__(self, session_factory: async_sessionmaker[AsyncSession] | None = None):
+        if session_factory is None:
+            from app.core.db.config import CelerySessionLocal
+            session_factory = CelerySessionLocal
+        self.session_factory = session_factory
+    
+    def __call__(self) -> "CeleryUnitOfWork":
+        """
+        Возвращает свежий экземпляр UoW для использования как контекстный менеджер.
+        
+        Свежий экземпляр гарантирует, что сессия не будет переиспользована
+        и не возникнет конфликта состояния при вложенных вызовах.
+        """
+        return CeleryUnitOfWork(self.session_factory)
     
     async def __aenter__(self):
         self.session = self.session_factory()
