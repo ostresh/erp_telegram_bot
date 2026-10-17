@@ -355,7 +355,6 @@ class RecordRepository(BaseRepository[Record]):
         )
 
         result = await self.session.execute(stmt)
-        await self.session.flush()
         count = result.rowcount
 
         logger.debug(f"Updated price for {count} records of game '{game_name}'")
@@ -383,7 +382,6 @@ class RecordRepository(BaseRepository[Record]):
         stmt = delete(Record).where(Record.id.in_(unique_ids))
 
         result = await self.session.execute(stmt)
-        await self.session.flush()
 
         all_deleted = result.rowcount == len(unique_ids)
 

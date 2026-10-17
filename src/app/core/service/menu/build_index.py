@@ -10,19 +10,17 @@ class MenuBuildIndex:
 ) -> dict[str, MenuNode | MenuAction]:
         """
         Рекурсивно обходит дерево и собирает индекс.
-        
-        Обрабатывает:
-        - MenuNode (рекурсивно с детьми)
-        - MenuAction (листовой элемент)
-        - Списки (группировка кнопок)
-        
+
+        Обрабатывает MenuNode (рекурсивно с детьми), MenuAction (листовой элемент)
+        и списки (группировка кнопок).
+
         Args:
-            node: Текущий узел дерева
-            parent_path: Путь родительского узла
-            parent_crumbs: Хлебные крошки родителя
-            
+            node (MenuNode | MenuAction): текущий узел дерева.
+            parent_path (str | None): путь родительского узла.
+            parent_crumbs (list[str] | None): хлебные крошки родителя.
+
         Returns:
-            Словарь {path: MenuNode | MenuAction} для всех узлов дерева
+            dict[str, MenuNode | MenuAction]: словарь {path: узел} для всех узлов дерева.
         """
         # Формируем путь
         node.path = node.key if not parent_path else f'{parent_path}-{node.key}'
@@ -47,11 +45,17 @@ class MenuBuildIndex:
     ) -> dict[str, MenuNode | MenuAction]:
         """
         Обрабатывает один элемент из childrens.
-        
-        Элемент может быть:
-        - MenuNode — рекурсивный вызов
-        - MenuAction — добавление в индекс
-        - list — группировка, итерируем по элементам
+
+        Элемент может быть MenuNode (рекурсивный вызов), MenuAction (добавление в индекс)
+        или list (группировка, итерируем по элементам).
+
+        Args:
+            child (MenuNode | MenuAction | list): элемент из childrens.
+            parent_path (str): путь родительского узла.
+            parent_crumbs (list[str]): хлебные крошки родителя.
+
+        Returns:
+            dict[str, MenuNode | MenuAction]: словарь {path: узел} для обработанных элементов.
         """
         # Если это список (группа кнопок) — обрабатываем каждый элемент
         if isinstance(child, list):

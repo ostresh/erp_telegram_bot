@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import TypeVar, Generic, Optional, List
+from typing import Any, TypeVar, Generic, Optional, List
 from app.core.db.models import Base
 from app.core.db.repository.base import BaseRepository
 import logging
@@ -7,24 +7,24 @@ import logging
 logger = logging.getLogger(__name__)
 
 ModelType = TypeVar("ModelType", bound=Base)
-RepoType = TypeVar("RepoType", bound=BaseRepository)
+RepoType = TypeVar("RepoType", bound=BaseRepository[ModelType])
 
 class BaseService(Generic[ModelType, RepoType]):
     """
     Базовый сервис с общими CRUD операциями.
     """
     
-    def __init__(self, session: AsyncSession, repository: RepoType):
+    def __init__(self, session: AsyncSession, repository: RepoType) -> None:
         """
         Инициализация сервиса.
-        
+
         Args:
-            session: Активная сессия БД из UnitOfWork
-            repository: Экземпляр репозитория для работы с моделью
+            session (AsyncSession): активная сессия БД из UnitOfWork.
+            repository (RepoType): экземпляр репозитория для работы с моделью.
         """
-        self.session = session
-        self.repo = repository
-        self.model_name = repository.model.__name__
+        self.session: AsyncSession = session
+        self.repo: RepoType = repository
+        self.model_name: str = repository.model.__name__
     
     """
     CREATE
@@ -33,15 +33,15 @@ class BaseService(Generic[ModelType, RepoType]):
     async def create(self, item: ModelType) -> ModelType:
         """
         Создать новую запись.
-        
+
         Args:
-            item: Экземпляр модели для создания
-            
+            item (ModelType): экземпляр модели для создания.
+
         Returns:
-            Созданный объект модели
-            
+            ModelType: созданный объект модели.
+
         Raises:
-            Exception: При ошибке создания
+            Exception: При ошибке создания.
         """
         
         logger.info(f'Creating {self.model_name}')
@@ -57,15 +57,15 @@ class BaseService(Generic[ModelType, RepoType]):
     async def create_many(self, items: List[ModelType]) -> List[ModelType]:
         """
         Создать несколько записей.
-        
+
         Args:
-            items: Список экземпляров модели для создания
-            
+            items (List[ModelType]): список экземпляров модели для создания.
+
         Returns:
-            Список созданных объектов модели
-            
+            List[ModelType]: список созданных объектов модели.
+
         Raises:
-            Exception: При ошибке создания
+            Exception: При ошибке создания.
         """
         
         logger.info(f'Creating many {self.model_name}')
@@ -85,15 +85,15 @@ class BaseService(Generic[ModelType, RepoType]):
     async def get_all(self, reverse: bool = False) -> List[ModelType]:
         """
         Получить все записи.
-        
+
         Args:
-            reverse: True для сортировки по убыванию (DESC)
-            
+            reverse (bool): True для сортировки по убыванию (DESC).
+
         Returns:
-            Список всех объектов модели
-            
+            List[ModelType]: список всех объектов модели.
+
         Raises:
-            Exception: При ошибке получения
+            Exception: При ошибке получения.
         """
         
         logger.info(f"Getting all {self.model_name}")
@@ -109,15 +109,15 @@ class BaseService(Generic[ModelType, RepoType]):
     async def get_by_id(self, item_id: int) -> Optional[ModelType]:
         """
         Получить запись по ID.
-        
+
         Args:
-            item_id: ID записи
-            
+            item_id (int): ID записи.
+
         Returns:
-            Объект модели или None, если не найден
-            
+            Optional[ModelType]: объект модели или None, если не найден.
+
         Raises:
-            Exception: При ошибке получения
+            Exception: При ошибке получения.
         """
         
         logger.info(f"Getting {self.model_name} by id={item_id}")
@@ -137,19 +137,19 @@ class BaseService(Generic[ModelType, RepoType]):
     UPDATE
     """
     
-    async def update(self, item_id: int, **data: dict[str, str]) -> Optional[ModelType]:
+    async def update(self, item_id: int, **data: Any) -> Optional[ModelType]:
         """
         Обновить запись по ID.
-        
+
         Args:
-            item_id: ID обновляемой записи
-            **data: Поля для обновления
-            
+            item_id (int): ID обновляемой записи.
+            **data (Any): поля для обновления.
+
         Returns:
-            Обновленный объект модели или None, если не найден
-            
+            Optional[ModelType]: обновлённый объект модели или None, если не найден.
+
         Raises:
-            Exception: При ошибке обновления
+            Exception: При ошибке обновления.
         """
         
         logger.info(f"Updating {self.model_name} with id={item_id}")
@@ -172,15 +172,15 @@ class BaseService(Generic[ModelType, RepoType]):
     async def delete(self, item_id: int) -> bool:
         """
         Удалить запись по ID.
-        
+
         Args:
-            item_id: ID удаляемой записи
-            
+            item_id (int): ID удаляемой записи.
+
         Returns:
-            True если запись удалена, иначе False
-            
+            bool: True, если запись удалена, иначе False.
+
         Raises:
-            Exception: При ошибке удаления
+            Exception: При ошибке удаления.
         """
         
         logger.info(f"Deleting {self.model_name} with id={item_id}")

@@ -78,7 +78,6 @@ class MessageToDeleteRepository(BaseRepository[MessageToDelete]):
             )
 
             result = await self.session.execute(stmt)
-            await self.session.flush()
 
             deleted = result.rowcount or 0
             logger.debug(f"Deleted {deleted} {MessageToDelete.__name__} records")

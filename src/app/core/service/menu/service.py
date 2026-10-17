@@ -27,28 +27,27 @@ class MenuService:
         await message.answer(text=menu.text, reply_markup=menu.keyboard)
     """
     
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: AsyncSession) -> None:
         """
         Инициализация сервиса.
-        
+
         Args:
-            session: Активная сессия БД из UnitOfWork
+            session (AsyncSession): активная сессия БД из UnitOfWork.
         """
-        self.session = session
+        self.session: AsyncSession = session
         
     def _build_breadcrumbs_text(self, crumbs: List[str]) -> str:
         """
         Собирает текст хлебных крошек из списка заголовков.
-        
-        Первый заголовок выводится без стрелки,
-        остальные — со стрелкой '→'.
-        
+
+        Первый заголовок выводится без стрелки, остальные — со стрелкой '→'.
+
         Args:
-            crumbs: Список заголовков, например ['Главная', 'Информация', 'Записи']
-            
+            crumbs (List[str]): список заголовков, например ['Главная', 'Информация', 'Записи'].
+
         Returns:
-            HTML-текст с хлебными крошками
-            
+            str: HTML-текст с хлебными крошками.
+
         Example:
             ['Главная', 'Информация'] → '<b>Главная</b>\\n→<b>Информация</b>'
         """
@@ -63,21 +62,23 @@ class MenuService:
         
         return '\n'.join(parts)
     
-    async def _get_finances(self, fields: List) -> str:
+    async def _get_finances(self, fields: List[str]) -> str:
         """
         Получает финансовую информацию.
-        
-        Возвращает отформатированный текст с показателями.
-        При ошибке возвращает пустую строку,
-        чтобы меню всё равно отобразилось.
-        
+
+        Возвращает отформатированный текст с показателями. При ошибке возвращает
+        пустую строку, чтобы меню всё равно отобразилось.
+
+        Args:
+            fields (List[str]): поля финансового отчёта.
+
         Returns:
-            Отформатированный текст финансов или пустая строка
+            str: отформатированный текст финансов или пустая строка.
         """
         
         try:
-            service = FinanceService(self.session)
-            report = await service.get_report(fields)
+            
+            report = await FinanceService(self.session).get_report(fields)
             return MessageFormatter.format_finance_report(
                 report,
                 fields
@@ -89,17 +90,17 @@ class MenuService:
     async def get_menu(self, path: str) -> MenuConfig:
         """
         Создаёт меню по пути навигации.
-        
-        Генерирует клавиатуру и текст хлебных крошек
-        
+
+        Генерирует клавиатуру и текст хлебных крошек.
+
         Args:
-            path: Путь меню (например, 'main' или 'main-info-records')
-            
+            path (str): путь меню (например, 'main' или 'main-info-records').
+
         Returns:
-            MenuConfig с текстом, клавиатурой и метаданными
-            
+            MenuConfig: конфигурация меню с текстом, клавиатурой и метаданными.
+
         Raises:
-            ValueError: Если путь не найден в дереве меню
+            ValueError: Если путь не найден в дереве меню.
         """
         
         logger.debug(f"Building menu for path: {path}")
@@ -134,14 +135,14 @@ class MenuService:
     async def get_back_menu(self, path: str) -> MenuConfig:
         """
         Создаёт меню для возврата (родительское меню).
-        
+
         Если у текущего меню нет родителя, возвращает главное меню.
-        
+
         Args:
-            path: Текущий путь меню
-            
+            path (str): текущий путь меню.
+
         Returns:
-            MenuConfig родительского меню (или главного, если родителя нет)
+            MenuConfig: конфигурация родительского меню (или главного, если родителя нет).
         """
         logger.debug(f"Building back menu for path: {path}")
         
@@ -153,21 +154,25 @@ class MenuService:
         return await self.get_menu(node.parent_path)
     
     
-    def build_breadcrumbs_text_from_path(self, path: str) -> List[str]:
+    def build_breadcrumbs_text_from_path(self, path: str) -> str:
         """
-        Собирает текст хлебных крошек из списка заголовков
-        Принимая путь текущего меню
-                
-        Первый заголовок выводится без стрелки,
-        остальные — со стрелкой '→'.
-        
+        Собирает текст хлебных крошек из списка заголовков, принимая путь текущего меню.
+
+        Первый заголовок выводится без стрелки, остальные — со стрелкой '→'.
+
         Args:
-            path: Текущий путь меню
-            
+            path (str): текущий путь меню.
+
         Returns:
-            Список хлебных крошек
+            str: HTML-текст с хлебными крошками.
         """
         
-        return self._build_breadcrumbs_text(MENU_INDEX.get(path).crumbs)
+        node = MENU_INDEX.get(path)
+        
+        if not node:
+            logger.warning(f"Unknown menu path for breadcrumbs: {path}")
+            raise ValueError(f"Unknown menu path: {path}")
+            
+        return self._build_breadcrumbs_text(node.crumbs)
         
         

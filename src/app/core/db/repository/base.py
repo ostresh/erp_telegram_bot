@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update, delete
-from typing import TypeVar, Generic, Type, Optional, List
+from typing import Any, TypeVar, Generic, Type, Optional, List
 
 from app.core.db.models import Base
 
@@ -13,25 +13,25 @@ ModelType = TypeVar("ModelType", bound=Base)
 class BaseRepository(Generic[ModelType]):
     """Базовый репозиторий для CRUD операций"""
     
-    def __init__(self, session: AsyncSession, model: Type[ModelType]):
-        self.session = session
-        self.model = model
+    def __init__(self, session: AsyncSession, model: Type[ModelType]) -> None:
+        self.session: AsyncSession = session
+        self.model: Type[ModelType] = model
     
     """
     CREATE
     """
     async def create(self, item: ModelType) -> ModelType:
         """
-        Создать запись
-        
+        Создать запись.
+
         Args:
-            item - объект модели
-            
-        Return:
-            Объект модели
-            
+            item (ModelType): объект модели.
+
+        Returns:
+            ModelType: созданный объект модели.
+
         Raises:
-            Exception: При ошибке создания
+            Exception: При ошибке создания.
         """
 
         logger.debug(f'Creating {self.model.__name__}')
@@ -48,16 +48,16 @@ class BaseRepository(Generic[ModelType]):
 
     async def create_many(self, items: List[ModelType]) -> List[ModelType]:
         """
-        Создать запись
+        Создать несколько записей.
 
         Args:
-            items - список объектов модели
+            items (List[ModelType]): список объектов модели.
 
-        Return:
-            Список объектов модели
-            
+        Returns:
+            List[ModelType]: список созданных объектов модели.
+
         Raises:
-            Exception: При ошибке создания
+            Exception: При ошибке создания.
         """
         
         logger.debug(f'Creating many {self.model.__name__}')
@@ -76,16 +76,16 @@ class BaseRepository(Generic[ModelType]):
     """
     async def get_all(self, reverse: bool = False) -> List[ModelType]:
         """
-        Чтение всех строк модели
-        
+        Чтение всех строк модели.
+
         Args:
-            reverse - сортировка в обратном порядке (DESC)
-        
-        Return:
-            Список объектов модели
-            
+            reverse (bool): сортировка в обратном порядке (DESC).
+
+        Returns:
+            List[ModelType]: список объектов модели.
+
         Raises:
-            Exception: При ошибке чтения
+            Exception: При ошибке чтения.
         """
 
         logger.debug(f"Getting all {self.model.__name__}")
@@ -110,16 +110,16 @@ class BaseRepository(Generic[ModelType]):
     
     async def get_by_id(self, item_id: int) -> Optional[ModelType]:
         """
-        Чтение строки по id
-        
+        Чтение строки по id.
+
         Args:
-            item_id - id строки 
-        
-        Return:
-            Объект модели или None если не найдено
-            
+            item_id (int): id строки.
+
+        Returns:
+            Optional[ModelType]: объект модели или None, если не найдено.
+
         Raises:
-            Exception: При ошибке чтения
+            Exception: При ошибке чтения.
         """
 
         logger.debug(f"Getting {self.model.__name__} by id={item_id}")
@@ -130,7 +130,7 @@ class BaseRepository(Generic[ModelType]):
                 .where(self.model.id == item_id)
             )
             result = await self.session.execute(stmt)
-            item =  result.scalar()
+            item =  result.scalar_one_or_none()
             
             if item:
                 logger.debug(f"{self.model.__name__} with id={item_id} found")
@@ -145,19 +145,19 @@ class BaseRepository(Generic[ModelType]):
     """
     UPDATE
     """
-    async def update(self, item_id: int, **data: dict[str, str]) -> Optional[ModelType]:
+    async def update(self, item_id: int, **data: Any) -> Optional[ModelType]:
         """
-        Обновление данных в модели
-        
+        Обновление данных в модели.
+
         Args:
-            item_id - id обновляемой строки
-            **data - словарь с полями для обновления
-        
-        Return:
-            Объект модели
-            
+            item_id (int): id обновляемой строки.
+            **data (Any): словарь с полями для обновления.
+
+        Returns:
+            Optional[ModelType]: обновлённый объект модели или None, если не найдено.
+
         Raises:
-            Exception: При ошибке обновления
+            Exception: При ошибке обновления.
         """
         
         logger.debug(f"Updating {self.model.__name__} with id={item_id}")
@@ -170,7 +170,6 @@ class BaseRepository(Generic[ModelType]):
                 .returning(self.model)
             )
             result = await self.session.execute(stmt)
-            await self.session.flush()
             item = result.scalar_one_or_none()
             
             if item:
@@ -188,16 +187,16 @@ class BaseRepository(Generic[ModelType]):
     """
     async def delete(self, item_id: int) -> bool:
         """
-        Удаление строки в модели
-        
+        Удаление строки в модели.
+
         Args:
-            item_id - id удаляемой строки
-        
-        Return:
-            bool удалилась ли строка
-            
+            item_id (int): id удаляемой строки.
+
+        Returns:
+            bool: True, если строка удалена, иначе False.
+
         Raises:
-            Exception: При ошибке удаления
+            Exception: При ошибке удаления.
         """
         logger.debug(f"Deleting {self.model.__name__} with id={item_id}")
         
@@ -207,7 +206,6 @@ class BaseRepository(Generic[ModelType]):
                 .where(self.model.id == item_id)
             )
             result = await self.session.execute(stmt)
-            await self.session.flush()
             
             deleted = result.rowcount > 0
             

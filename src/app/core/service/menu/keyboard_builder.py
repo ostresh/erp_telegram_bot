@@ -1,4 +1,5 @@
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.types import InlineKeyboardMarkup
 from aiogram.enums.button_style import ButtonStyle
 
 from app.core.service.menu.tree import MENU_INDEX
@@ -24,23 +25,19 @@ class MenuKeyboardBuilder:
     """
     
     @staticmethod
-    def build(path: str) -> InlineKeyboardBuilder:
+    def build(path: str) -> InlineKeyboardMarkup:
         """
         Генерирует клавиатуру для указанного пути меню.
-        
-        Производит группировку клавиатуры,
-        если элементы объединены в список
-        
+
+        Производит группировку клавиатуры, если элементы объединены в список.
+
         Args:
-            path: Путь меню (например, 'main' или 'main-info-records')
-            
+            path (str): путь меню (например, 'main' или 'main-info-records').
+
         Returns:
-            InlineKeyboardBuilder с готовой клавиатурой.
-            Если путь не найден — возвращает пустой builder
-            и логирует предупреждение.
+            InlineKeyboardMarkup: готовая клавиатура. Если путь не найден —
+            возвращает пустой builder и логирует предупреждение.
         """
-        
-        
         
         builder = InlineKeyboardBuilder()
         node = MENU_INDEX.get(path)
@@ -77,22 +74,22 @@ class MenuKeyboardBuilder:
     def _add_button(builder: InlineKeyboardBuilder, item: MenuNode | MenuAction) -> None:
         """
         Добавляет кнопку в builder в зависимости от типа элемента.
-        
+
         Args:
-            builder: InlineKeyboardBuilder
-            item: MenuNode или MenuAction
+            builder (InlineKeyboardBuilder): builder клавиатуры.
+            item (MenuNode | MenuAction): элемент меню.
         """
         
         if isinstance(item, MenuAction):
             handler_action = item.handler_action or item.key
             builder.button(
-                text = item.title,
+                text=item.title,
                 callback_data=ActionCB(path=item.path, action=handler_action).pack(),
                 style=ACTION_STYLE
             )
         elif isinstance(item, MenuNode):
             builder.button(
-                text = f'{item.title}',
+                text=f'{item.title}',
                 callback_data=MenuCB(path=item.path, title=item.key).pack(),
                 style=MENU_STYLE
             )

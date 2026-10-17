@@ -1,3 +1,5 @@
+from typing import Union
+
 from app.core.dto.menu import MenuNode, MenuAction
 from app.interfaces.bot.messages.menu import MenuTitle, ActionLabel
 from .build_index import MenuBuildIndex
@@ -119,8 +121,8 @@ MENU_TREE = MenuNode(
                             key='product',
                             title=MenuTitle.PRODUCT_REPORTS,
                             childrens=[
-                                MenuAction(key='reports', title=ActionLabel.MOVEMENT_REPORT, handler_action='movement_report'),
-                                MenuAction(key='reports', title=ActionLabel.SALES_REPORT, handler_action='sales_report'),
+                                MenuAction(key='movement-report', title=ActionLabel.MOVEMENT_REPORT, handler_action='movement_report'),
+                                MenuAction(key='sales-report', title=ActionLabel.SALES_REPORT, handler_action='sales_report'),
                             ]
                         ),
                         MenuAction(key='full_finance', title=ActionLabel.FULL_FINANCE_REPORT, handler_action='full_finance_report'),
@@ -132,8 +134,8 @@ MENU_TREE = MenuNode(
                     key='games_catalog',
                     title=MenuTitle.GAMES_CATALOG,
                     childrens=[
-                        MenuAction(key='add', title=ActionLabel.ADD_GAME, handler_action='add_game'),
-                        MenuAction(key='add', title=ActionLabel.UPDATE_GAME, handler_action='update_game'),
+                        MenuAction(key='add-game', title=ActionLabel.ADD_GAME, handler_action='add_game'),
+                        MenuAction(key='update-game', title=ActionLabel.UPDATE_GAME, handler_action='update_game'),
                         MenuAction(key='delete', title=ActionLabel.DELETE_GAME, handler_action='delete_game'),
                     ]
                 ),
@@ -153,4 +155,4 @@ MENU_TREE = MenuNode(
 )
 
 
-MENU_INDEX: dict[str, MenuNode] = MenuBuildIndex.build_index(MENU_TREE)
+MENU_INDEX: dict[str, Union[MenuNode, MenuAction]] = MenuBuildIndex.build_index(MENU_TREE)
