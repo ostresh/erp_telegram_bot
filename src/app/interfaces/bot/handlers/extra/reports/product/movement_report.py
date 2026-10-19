@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 router = Router()
 
 
-@router.callback_query(ActionCB.filter(F.action == 'movement_report'))
+@router.callback_query(ActionCB.filter(F.action == 'mov_report'))
 async def start_movement_report_dialog(callback: CallbackQuery, callback_data: ActionCB, dialog_manager: DialogManager, uow: UnitOfWork):
     await callback.answer()
     

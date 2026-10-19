@@ -121,7 +121,7 @@ MENU_TREE = MenuNode(
                             key='product',
                             title=MenuTitle.PRODUCT_REPORTS,
                             childrens=[
-                                MenuAction(key='movement-report', title=ActionLabel.MOVEMENT_REPORT, handler_action='movement_report'),
+                                MenuAction(key='movement-report', title=ActionLabel.MOVEMENT_REPORT, handler_action='mov_report'),
                                 MenuAction(key='sales-report', title=ActionLabel.SALES_REPORT, handler_action='sales_report'),
                             ]
                         ),

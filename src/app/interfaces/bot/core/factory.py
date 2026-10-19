@@ -40,7 +40,7 @@ def create_bot() -> Bot:
     
     # Development — с прокси
     session = AiohttpSession(
-        proxy="socks5://127.0.0.1:3067",
+        proxy=config.PROXY_URL,
         timeout=60.0,
     )
     

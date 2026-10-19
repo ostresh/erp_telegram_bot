@@ -1,0 +1,101 @@
+services:
+
+  # postgres
+  postgres:
+    image: postgres:17
+    container_name: erp-postgres
+    environment:
+      POSTGRES_DB: disks_ps
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db_dumps:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d disks_ps"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  # redis
+  redis:
+    image: redis:7
+    container_name: erp-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  # migrations
+  migrate:
+    build: .
+    container_name: erp-migrate
+    env_file:
+      - .env.docker
+    # Команда запускает Alembic upgrade до последней версии
+    command: python -m manage migrate upgrade
+    depends_on:
+      postgres:
+        condition: service_healthy  # Ждем, пока БД реально готова
+    restart: "no"                   # Не перезапускать после успеха/падения
+
+  # telegram_bot
+  bot:
+    build: .
+    container_name: erp-bot
+    env_file:
+      - .env.docker
+    command: python -m manage run bot
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully # Ждем, пока миграции успешно завершатся
+    restart: unless-stopped
+
+  # celery worker
+  worker:
+    build: .
+    container_name: erp-worker
+    env_file:
+      - .env.docker
+    command: python -m manage run celery worker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  # celery beat
+  beat:
+    build: .
+    container_name: erp-beat
+    env_file:
+      - .env.docker
+    command: python -m manage run celery beat
+    depends_on:
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:

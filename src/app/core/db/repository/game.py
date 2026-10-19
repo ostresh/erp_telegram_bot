@@ -94,11 +94,10 @@ class GameRepository(BaseRepository[Game]):
         Returns:
             List[Game]: список найденных игр, отсортированных по названию.
         """
-        logger.debug(f"Search games by status '{status.value}' for query: {query}")
+        logger.debug(f"Search games by status '{status.value if status else 'no status'}' for query: {query}")
         
         stmt = (
             select(Game)
-            .join(Record, Record.game_id == Game.id)
             .where(Game.name.ilike(f"%{query}%"))
             .distinct()
             .order_by(Game.name.desc())
@@ -106,12 +105,12 @@ class GameRepository(BaseRepository[Game]):
         )
         
         if status:
-            stmt = stmt.where(Record.status == status.value)
+            stmt = stmt.join(Record, Record.game_id == Game.id).where(Record.status == status.value)
         
         result = await self.session.execute(stmt)
         games = result.scalars().all()
         
-        logger.debug(f"Found {len(games)} games for query '{query}' with status '{status.value}'")
+        logger.debug(f"Found {len(games)} games for query '{query}' with status '{status.value if status else 'no status'}'")
         return games
     
     # Получение по имени

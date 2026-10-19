@@ -1,0 +1,100 @@
+# === Система контроля версий ===
+.git
+.gitignore
+
+# ВАЖНО: в .dockerignore шаблон без "**/" действует только на верхний уровень
+# контекста, поэтому для вложенных путей указываем оба варианта.
+
+# === Виртуальные окружения ===
+.venv/
+**/.venv/
+venv/
+**/venv/
+env/
+**/env/
+
+# === Кэш Python ===
+__pycache__/
+**/__pycache__/
+*.pyc
+**/*.pyc
+*.pyo
+**/*.pyo
+*.pyd
+**/*.pyd
+*.so
+**/*.so
+.Python
+
+# === Кэши линтеров и тестов ===
+.mypy_cache/
+**/.mypy_cache/
+.pytest_cache/
+**/.pytest_cache/
+.ruff_cache/
+**/.ruff_cache/
+.coverage
+**/.coverage
+htmlcov/
+**/htmlcov/
+
+# === Секреты (КРИТИЧНО!) ===
+# .env содержит токены, пароли БД — НЕЛЬЗЯ в образ
+.env
+.env.*
+**/.env
+**/.env.*
+
+# === IDE и редакторы ===
+.idea/
+**/.idea/
+.vscode/
+**/.vscode/
+*.swp
+**/*.swp
+*.swo
+**/*.swo
+*.code-workspace
+**/*.code-workspace
+
+# === Логи и временные файлы ===
+*.log
+**/*.log
+logs/
+**/logs/
+tmp/
+**/tmp/
+*.tmp
+**/*.tmp
+data/
+**/data/
+db_dumps/
+**/db_dumps/
+celerybeat*
+**/celerybeat*
+*.sqlite3
+**/*.sqlite3
+*.db
+**/*.db
+
+# === Локальные исходники (не для образа) ===
+src/playground/
+docs/notes/
+.agents/
+
+# === Docker-файлы (сами себя не нужно копировать) ===
+Dockerfile
+.dockerignore
+docker-compose*.yaml
+
+# === Документация ===
+README.md
+.github/
+
+# === Windows-специфичное ===
+Thumbs.db
+**/Thumbs.db
+desktop.ini
+**/desktop.ini
+.DS_Store
+**/.DS_Store

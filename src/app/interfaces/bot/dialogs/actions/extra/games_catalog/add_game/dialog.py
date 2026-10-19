@@ -1,7 +1,8 @@
 from aiogram_dialog import Dialog
 from aiogram_dialog.widgets.text import (
-    Const, Format, Multi
+    Const, Format, Multi, Jinja
 )
+from aiogram_dialog.widgets.input import TextInput
 from aiogram_dialog.widgets.kbd import Button, Multiselect
 
 from app.interfaces.bot.utils.emoji import Emoji
@@ -16,7 +17,18 @@ add_game_dialog = Dialog(
     
     # первый этап - ввод названия игры
     RootWindow(
-        *CommonWidgets.game_input(EventHandler),
+        Multi(
+            Format('{start_data[menu_text]}'),
+            Jinja("{%- if dialog_data.get('game_error') -%}❌ {{ dialog_data['game_error'] }}\n\n{%- endif -%}"),
+            Const(f'<b>{Emoji.GAME} ВВЕДИТЕ НАЗВАНИЕ ИГРЫ </b>'),
+            sep='\n\n'
+        ),
+        TextInput(
+            id='type_game',
+            type_factory=str,
+            on_success=EventHandler.on_game_typed,
+            on_error=EventHandler.on_text_error
+        ),
         state=States.game_input,
     ),
     

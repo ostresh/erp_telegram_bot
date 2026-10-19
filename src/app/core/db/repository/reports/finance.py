@@ -39,13 +39,12 @@ class FinanceReportRepository:
             # Расходы: сумма всех закупок
             func.coalesce(func.sum(Record.price_purchase), 0).label('expenses'),
 
-            # Доходы: сумма продаж со статусами 'Продано', 'В пути ко мне', 'В пути к клиенту'
+            # Доходы: сумма продаж со статусами 'Продано', 'В пути ко мне'
             func.coalesce(func.sum(
                 case(
                     (Record.status.in_([
                         RecordStatus.SOLD.value,
                         RecordStatus.IN_TRANSIT_TO_ME.value,
-                        RecordStatus.IN_TRANSIT_TO_CLIENT.value
                     ]), Record.price_sold),
                     else_=0
                 )

@@ -1,5 +1,5 @@
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 
 from celery import shared_task
@@ -38,8 +38,8 @@ def generate_sales_report_excel_task(
         period_end_str (str): конец периода в виде строки
     """
     
-    period_start = datetime.strptime(period_start_str, DATE_FORMAT)
-    period_end = datetime.strptime(period_end_str, DATE_FORMAT)
+    period_start = datetime.strptime(period_start_str, DATE_FORMAT).replace(tzinfo=timezone.utc)
+    period_end = datetime.strptime(period_end_str, DATE_FORMAT).replace(tzinfo=timezone.utc)
     
     logger.info(
         "Start generating sales report for chat_id=%s, message_id=%s, period=[%s, %s]",

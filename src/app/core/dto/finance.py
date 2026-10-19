@@ -32,6 +32,10 @@ class FinanceReport:
     def __post_init__(self) -> None:
         """Вычисление зависимых полей после инициализации"""
         
+        self.incomes = self.incomes + config.INITIAL_BALANCE
+        
+        self.revenue = self.revenue + config.REVENUE
+        
         # Чистая прибыль = доходы - расходы
         self.net_profit = self.incomes - self.expenses
         
@@ -43,8 +47,7 @@ class FinanceReport:
         
         # На счету = чистая прибыль + начальный баланс + доп. средства
         self.on_account = (
-            self.net_profit 
-            + config.INITIAL_BALANCE
+            self.net_profit
         )
         
         # Все активы = на счету + в пути + в наличии + едет ко мне

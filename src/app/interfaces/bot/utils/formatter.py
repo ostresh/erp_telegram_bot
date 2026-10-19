@@ -97,7 +97,7 @@ class MessageFormatter:
         )
         on_way = (
             f"{Emoji.IN_TRANSIT} <strong>ЕДЕТ К ПОКУПАТЕЛЮ</strong>\n"
-            f"{Emoji.ON_WAY} <code>{report.on_way}</code>р. • {Emoji.DISCS_COUNT} <code>{money(report.on_way_count)}</code>шт."
+            f"{Emoji.ON_WAY} <code>{money(report.on_way)}</code>р. • {Emoji.DISCS_COUNT} <code>{(report.on_way_count)}</code>шт."
             if report.on_way
             else ''
         )

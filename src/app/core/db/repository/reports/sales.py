@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -36,6 +36,11 @@ class SalesReportRepository:
 
         INNER JOIN с Game намеренно отсекает записи без игры
         (чистые транзакции / утилиты): они не являются продажами товара.
+
+        Внутренне период — полуоткрытый интервал
+        [period_start, period_end + 1 день): сравнение идёт строго «меньше»
+        с границей на полуночи следующих суток. Так последний день входит
+        в отчёт целиком, без ловушек с 23:59:59.999999.
 
         Args:
             period_start (datetime): Начало периода (включительно)
@@ -85,9 +90,12 @@ class SalesReportRepository:
             )
             .join(Record.game)
             .where(
-                Record.status == RecordStatus.SOLD.value,
+                Record.status.in_([
+                    RecordStatus.SOLD.value, 
+                    RecordStatus.IN_TRANSIT_TO_CLIENT.value
+                ]),
                 Record.sold_at >= period_start,
-                Record.sold_at <= period_end,
+                Record.sold_at < period_end + timedelta(days=1),
             )
             .group_by(Game.id, Game.name)
             .order_by(Game.name.asc())
@@ -119,9 +127,9 @@ class SalesReportRepository:
         Получить записи с движением в указанный период
 
         Выбирает записи, у которых дата покупки (purchase_at) ИЛИ
-        дата продажи (sold_at) находится в диапазоне [period_start, period_end].
-        Это позволяет отследить все товары, которые были куплены
-        или проданы в указанный период.
+        дата продажи (sold_at) находятся в полуоткрытом интервале
+        [period_start, period_end + 1 день). Это позволяет отследить
+        все товары, которые были куплены или проданы в указанный период.
 
         Args:
             period_start (datetime): Начало периода (включительно)
@@ -144,11 +152,11 @@ class SalesReportRepository:
                 or_(
                     and_(
                         Record.purchase_at >= period_start,
-                        Record.purchase_at <= period_end,
+                        Record.purchase_at < period_end + timedelta(days=1),
                     ),
                     and_(
                         Record.sold_at >= period_start,
-                        Record.sold_at <= period_end,
+                        Record.sold_at < period_end + timedelta(days=1),
                     ),
                 )
             )
