@@ -1,0 +1,132 @@
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+services:
+
+  # postgres
+  postgres:
+    image: postgres:17
+    container_name: erp-postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db_dumps:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    logging: *default-logging
+
+  # redis
+  redis:
+    image: redis:7
+    container_name: erp-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  # migrations
+  migrate:
+    build: .
+    container_name: erp-migrate
+    env_file:
+      - .env
+    command: python -m manage migrate upgrade
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+    logging: *default-logging
+
+  # telegram_bot
+  bot:
+    build: .
+    container_name: erp-bot
+    env_file:
+      - .env
+    command: python -m app.interfaces.bot.main
+    init: true
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    logging: *default-logging
+
+  # celery worker
+  worker:
+    build: .
+    container_name: erp-worker
+    env_file:
+      - .env
+    command: python -m celery -A app.core.tasks.celery_app worker --loglevel=info --concurrency=3
+    init: true
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    logging: *default-logging
+
+  # инициализация beat
+  beat-init:
+    build: .
+    container_name: erp-beat-init
+    user: root
+    volumes:
+      - beat_data:/app/beat
+    command: sh -c "chown -R app:app /app/beat"
+    restart: "no"
+    logging: *default-logging
+
+  # celery beat
+  beat:
+    build: .
+    container_name: erp-beat
+    env_file:
+      - .env
+    command: >
+      python -m celery -A app.core.tasks.celery_app beat
+      --loglevel=info
+      --schedule=/app/beat/celerybeat-schedule
+    init: true
+    volumes:
+     - beat_data:/app/beat
+    depends_on:
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      beat-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    logging: *default-logging
+
+volumes:
+  postgres_data:
+  redis_data:
+  beat_data:

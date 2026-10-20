@@ -1,100 +1,92 @@
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
-
-  # postgres
-  postgres:
-    image: postgres:17
-    container_name: erp-postgres
-    environment:
-      POSTGRES_DB: disks_ps
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./db_dumps:/docker-entrypoint-initdb.d:ro
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d disks_ps"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-    restart: unless-stopped
-
   # redis
   redis:
     image: redis:7
-    container_name: erp-redis
+    container_name: erp-redis-local
+    command: >
+      redis-server
+      --maxmemory 128mb
+      --maxmemory-policy allkeys-lru
     ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
+      - "127.0.0.1:6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 3s
-      retries: 5
+      retries: 10
       start_period: 5s
     restart: unless-stopped
-
-  # migrations
-  migrate:
-    build: .
-    container_name: erp-migrate
-    env_file:
-      - .env.docker
-    command: python -m manage migrate upgrade
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: "no"
+    logging: *default-logging
 
   # telegram_bot
   bot:
     build: .
-    container_name: erp-bot
+    container_name: erp-bot-local
     env_file:
       - .env.docker
-    command: python -m manage run bot
+    command:
+      - python
+      - -m
+      - app.interfaces.bot.main
+    init: true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
-      postgres:
-        condition: service_healthy
       redis:
         condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
     restart: unless-stopped
+    logging: *default-logging
 
   # celery worker
   worker:
     build: .
-    container_name: erp-worker
+    container_name: erp-worker-local
     env_file:
       - .env.docker
-    command: python -m manage run celery worker
+    command:
+      - python
+      - -m
+      - celery
+      - -A
+      - app.core.tasks.celery_app
+      - worker
+      - --loglevel=info
+      - --concurrency=2
+    init: true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
-      postgres:
-        condition: service_healthy
       redis:
         condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
     restart: unless-stopped
+    logging: *default-logging
 
   # celery beat
   beat:
     build: .
-    container_name: erp-beat
+    container_name: erp-beat-local
     env_file:
       - .env.docker
-    command: python -m manage run celery beat
+    command:
+      - python
+      - -m
+      - celery
+      - -A
+      - app.core.tasks.celery_app
+      - beat
+      - --loglevel=info
+      - --schedule=/tmp/celerybeat-schedule
+    init: true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       redis:
         condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
     restart: unless-stopped
-
-volumes:
-  postgres_data:
-  redis_data:
+    logging: *default-logging
