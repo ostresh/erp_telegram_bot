@@ -43,12 +43,11 @@ services:
     container_name: erp-migrate
     env_file:
       - .env.docker
-    # Команда запускает Alembic upgrade до последней версии
     command: python -m manage migrate upgrade
     depends_on:
       postgres:
-        condition: service_healthy  # Ждем, пока БД реально готова
-    restart: "no"                   # Не перезапускать после успеха/падения
+        condition: service_healthy
+    restart: "no"
 
   # telegram_bot
   bot:
@@ -63,7 +62,7 @@ services:
       redis:
         condition: service_healthy
       migrate:
-        condition: service_completed_successfully # Ждем, пока миграции успешно завершатся
+        condition: service_completed_successfully
     restart: unless-stopped
 
   # celery worker
