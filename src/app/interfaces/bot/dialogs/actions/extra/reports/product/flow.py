@@ -22,7 +22,7 @@ class ProductReportFlow(CommonFlow):
         
         action_type = manager.start_data.get('handler_action')
         
-        if action_type == 'movement_report':
+        if action_type == 'mov_report':
             generate_movement_report_excel_task.delay(
                 chat_id=chat_id,
                 message_id=message_id,
