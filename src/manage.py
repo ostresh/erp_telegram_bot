@@ -9,6 +9,7 @@
     python -m manage migrate current
     
     python -m manage run bot
+    python -m manage run api
     python -m manage run celery worker
     python -m manage run celery beat
     python -m manage run celery all
@@ -149,12 +150,14 @@ def handle_run(args: list[str]) -> int:
 
 {Colors.BOLD}Доступные приложения:{Colors.RESET}
   {Colors.CYAN}bot{Colors.RESET}                  Запуск Telegram бота
+  {Colors.CYAN}api{Colors.RESET}                  Запуск FastAPI (uvicorn, http://127.0.0.1:8000)
   {Colors.CYAN}celery worker{Colors.RESET}        Запуск Celery worker
   {Colors.CYAN}celery beat{Colors.RESET}          Запуск Celery beat (планировщик)
   {Colors.CYAN}celery all{Colors.RESET}           Запуск worker + beat вместе
 
 {Colors.BOLD}Примеры:{Colors.RESET}
   python -m manage run bot
+  python -m manage run api
   python -m manage run celery worker
   python -m manage run celery beat
   python -m manage run celery all
@@ -167,6 +170,20 @@ def handle_run(args: list[str]) -> int:
     if app_name == "bot":
         log_info("Запуск бота...")
         result = subprocess.run([sys.executable, "-m", "app.interfaces.bot.main"])
+        return result.returncode
+    
+    # === Запуск FastAPI ===
+    elif app_name == "api":
+        host = "127.0.0.1"
+        port = "8000"
+        log_info(f"Запуск FastAPI: http://{host}:{port}")
+        result = subprocess.run([
+            sys.executable, "-m", "uvicorn",
+            "app.interfaces.api.main:app",
+            "--reload",
+            "--host", host,
+            "--port", port,
+        ])
         return result.returncode
     
     # === Запуск Celery ===
@@ -274,13 +291,14 @@ def print_main_help():
 
 {Colors.BOLD}Команды:{Colors.RESET}
   {Colors.CYAN}migrate{Colors.RESET}              Управление миграциями БД (Alembic)
-  {Colors.CYAN}run <app>{Colors.RESET}            Запуск приложений (bot, celery)
+  {Colors.CYAN}run <app>{Colors.RESET}            Запуск приложений (bot, api, celery)
   {Colors.CYAN}test{Colors.RESET}                 Запуск playground
 
 {Colors.BOLD}Примеры:{Colors.RESET}
   python -m manage migrate init "Initial tables"
   python -m manage migrate upgrade
   python -m manage run bot
+  python -m manage run api
   python -m manage run celery all
   python -m manage test
 
