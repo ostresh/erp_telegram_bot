@@ -38,6 +38,7 @@ data/
 celerybeat*
 celerybeat-schedule*
 db_dumps/
+artifacts/
 
 # --- Local-only sources ---
 src/playground
