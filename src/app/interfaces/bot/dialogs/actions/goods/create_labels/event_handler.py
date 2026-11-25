@@ -6,6 +6,7 @@ from aiogram_dialog.widgets.kbd import Select, Button
 from aiogram_dialog.widgets.input import TextInput
 
 from app.core.dto.labels import DeliveryType, LabelDTO, LabelItemDTO
+from app.core.tasks.labels import generate_labels_pdf
 from app.interfaces.bot.dialogs.common.event_handler import CommonEventHandler
 from app.interfaces.bot.dialogs.core import handle_db_errors
 
@@ -144,11 +145,19 @@ class CreateLabelsEventHandler(CommonEventHandler):
         if not dtos:
             await callback.answer('⚠️ Добавьте заказы!')
         
-        dtos = [LabelDTO.model_validate(item) for item in dtos]
+        await callback.message.delete()
         
-        print(dtos)
+        message_ = await callback.message.answer(
+            '⏳ Формирую этикетки...'
+        )
         
-        # тут будет создание таски селери
+        generate_labels_pdf.delay(
+            chat_id=message_.chat.id,
+            message_id=message_.message_id,
+            labels=dtos
+        )
+        
+        await manager.done()
         
         
         
