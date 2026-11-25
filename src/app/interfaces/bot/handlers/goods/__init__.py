@@ -3,6 +3,7 @@ from .sell_goods import router as sell_goods_router
 from .order_arrived import router as order_arrived_router
 from .change_selling_price import router as change_selling_price_router
 from .add_trns import router as add_trns_router
+from .create_labels import router as create_labels_router
 from .extra import GOODS_EXTRA_ROUTERS
 
 GOODS_ROUTERS = [
@@ -11,6 +12,7 @@ GOODS_ROUTERS = [
     order_arrived_router,
     change_selling_price_router,
     add_trns_router,
+    create_labels_router,
     *GOODS_EXTRA_ROUTERS
 ]
 
