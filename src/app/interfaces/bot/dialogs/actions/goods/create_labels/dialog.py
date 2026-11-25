@@ -1,4 +1,3 @@
-from enum import Enum
 
 from aiogram_dialog import Dialog
 from aiogram_dialog.widgets.text import (
@@ -7,9 +6,7 @@ from aiogram_dialog.widgets.text import (
 from aiogram_dialog.widgets.kbd import Button, Group, Select, SwitchTo
 from aiogram_dialog.widgets.input import TextInput
 
-from app.core.dto.labels import DeliveryType
 from app.interfaces.bot.dialogs.common.widgets import CommonWidgets
-from app.interfaces.bot.utils.emoji import Emoji
 from app.interfaces.bot.dialogs.core import RootWindow, InnerWindow
 
 from .states import CreateLabelsSG as States
@@ -28,9 +25,9 @@ create_labels_dialog = Dialog(
                 '{% set dtos = dialog_data["dtos"] %}'
                 '<b>Заказы:\n\n</b>'
                 '{% for dto in dtos %}'
-                    '<b>{{dto.order_number}} ({{dto.delivery.display_name}}):\n</b>'
-                    '{% for item in dto.items %}'
-                        '{{item.game_name}} x{{item.count}}\n'
+                    '<b>{{dto.get("order_number")}} ({{dto.get("delivery_label")}}):\n</b>'
+                    '{% for item in dto.get("items") %}'
+                        '{{item.get("game_name")}} x{{item.get("count")}}\n'
                     '{% endfor %}'
                     '\n\n'
                 '{% endfor %}'
@@ -80,7 +77,7 @@ create_labels_dialog = Dialog(
         Group(
             Select(
                 Format("{item[name]}"),
-                id="game_select",
+                id="delivery_select",
                 item_id_getter=lambda x: x["id"],
                 items="deliveries",
                 on_click=EventHandler.on_delivery_selected,
@@ -96,7 +93,7 @@ create_labels_dialog = Dialog(
         Multi(
             Format('{start_data[menu_text]}'),
             Format(f'<b>Заказ: {{dialog_data[order_number]}}</b>'),
-            Format(f'<b>Доставка: {{dialog_data[delivery].display_name}}</b>'),
+            Format(f'<b>Доставка: {{dialog_data[delivery_label]}}</b>'),
             Jinja(
                 '{%- if dialog_data["game_names"] -%}'
                 '<b>Игры:\n</b>'
@@ -111,7 +108,7 @@ create_labels_dialog = Dialog(
         ),
         SwitchTo(
             Const('Добавить игру'),
-            id='add_order',
+            id='add_game',
             state=States.game_input
         ),
         Button(

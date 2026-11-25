@@ -1,20 +1,15 @@
-from datetime import datetime, timezone
 from typing import ClassVar
-from enum import Enum
 
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import DialogManager, ShowMode
 from aiogram_dialog.widgets.kbd import Select, Button
 from aiogram_dialog.widgets.input import TextInput
 
-from app.core.db.statuses import RecordStatus
 from app.core.dto.labels import DeliveryType, LabelDTO, LabelItemDTO
 from app.interfaces.bot.dialogs.common.event_handler import CommonEventHandler
 from app.interfaces.bot.dialogs.core import handle_db_errors
-from app.interfaces.bot.utils.emoji import Emoji
 
 from .states import CreateLabelsSG
-from .flow import CreateLabelsFlow
 
 import logging
 
@@ -26,10 +21,8 @@ class CreateLabelsEventHandler(CommonEventHandler):
     Наследуется от базового обработчика
     
     Переопределяет:
-        - Flow: CreateLabelsFlow
         - States: CreateLabelsSG
     """
-    flow: ClassVar[type[CreateLabelsFlow]] = CreateLabelsFlow
     states: ClassVar[type[CreateLabelsSG]] = CreateLabelsSG
     
     @classmethod
@@ -45,9 +38,10 @@ class CreateLabelsEventHandler(CommonEventHandler):
         Обработчик выбора доставки
         """
         
-        await callback.answer()
+        await callback.answer(show_alert=True)
         
-        manager.dialog_data['delivery'] = DeliveryType(item_id)
+        manager.dialog_data['delivery_value'] = item_id
+        manager.dialog_data['delivery_label'] = DeliveryType(item_id).display_name
         
         await manager.next(show_mode=ShowMode.EDIT)
         
@@ -57,13 +51,11 @@ class CreateLabelsEventHandler(CommonEventHandler):
         message: Message,
         widget: TextInput,
         manager: DialogManager,
-        text: int,
+        text: str,
     ):
         """
         Обработчик ввода номера заказа
         """
-        
-        manager.show_mode = ShowMode.EDIT
         
         manager.dialog_data['order_number'] = text
         
@@ -72,29 +64,12 @@ class CreateLabelsEventHandler(CommonEventHandler):
         await manager.next(show_mode=ShowMode.EDIT)
     
     @classmethod
-    @handle_db_errors
-    async def on_add_comment_button(
-        cls,
-        callback: CallbackQuery,
-        button: Button,
-        manager: DialogManager,
-    ):
-        """
-        Обработчик нажатия на кнопку для ввода комментария
-        """
-        
-        await callback.answer()
-        
-        await manager.switch_to(cls.states.input_comment)
-    
-    @classmethod
     async def _after_game_input(cls, manager: DialogManager):
         """
         Хук после выбора игры
         """
         
         game_name = manager.dialog_data.get('game_name')
-        print(game_name)
         
         game_names: list = manager.dialog_data.get('game_names', [])
         
@@ -102,7 +77,7 @@ class CreateLabelsEventHandler(CommonEventHandler):
         
         manager.dialog_data['game_names'] = game_names
         
-        await manager.switch_to(cls.states.main_game_input)
+        await manager.switch_to(cls.states.main_game_input, show_mode=ShowMode.EDIT)
     
     @classmethod
     @handle_db_errors
@@ -117,7 +92,7 @@ class CreateLabelsEventHandler(CommonEventHandler):
         """
         
         order_number = manager.dialog_data.get('order_number')
-        delivery = manager.dialog_data.get('delivery')
+        delivery_value = manager.dialog_data.get('delivery_value')
         game_names: list = manager.dialog_data.get('game_names')
         
         if not game_names:
@@ -127,12 +102,9 @@ class CreateLabelsEventHandler(CommonEventHandler):
         unique_game_names = set(game_names)
         games_count = {item: game_names.count(item) for item in unique_game_names}
         
-        dtos = manager.dialog_data.get('dtos', [])
-        
-        dtos.append(
-            LabelDTO(
+        new_dto = LabelDTO(
             order_number=order_number,
-            delivery=delivery.value,
+            delivery=delivery_value,
             items=[
                 LabelItemDTO(
                     game_name=key,
@@ -141,13 +113,15 @@ class CreateLabelsEventHandler(CommonEventHandler):
                 for key, value in games_count.items()
                 ]
             )
-        )
         
-        manager.dialog_data['dtos'] = dtos
+        dto_dump = new_dto.model_dump()
+        dto_dump["delivery_label"] = manager.dialog_data.get('delivery_label')
         
-        manager.dialog_data.pop('order_number')
-        manager.dialog_data.pop('delivery')
-        manager.dialog_data.pop('game_names')
+        manager.dialog_data.setdefault('dtos', []).append(dto_dump)
+        
+        # Очистка
+        for key in ('order_number', 'delivery_label', 'delivery_value', 'game_names'):
+            manager.dialog_data.pop(key, None)
         
         await manager.switch_to(cls.states.main, show_mode=ShowMode.EDIT)
     
@@ -169,7 +143,11 @@ class CreateLabelsEventHandler(CommonEventHandler):
         
         if not dtos:
             await callback.answer('⚠️ Добавьте заказы!')
-            
+        
+        dtos = [LabelDTO.model_validate(item) for item in dtos]
+        
+        print(dtos)
+        
         # тут будет создание таски селери
         
         
