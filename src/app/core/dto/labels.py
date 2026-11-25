@@ -60,7 +60,7 @@ class LabelDTO(BaseModel):
     
     Attributes:
         order_number (str): номер заказа
-        delivery (str): доставка
+        delivery (DeliveryType): доставка
         items (list[LabelItemDTO]): список игр
         
     Validators:
