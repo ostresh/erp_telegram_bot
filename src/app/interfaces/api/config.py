@@ -58,6 +58,37 @@ class ApiConfig(BaseSettings):
         default="redis://localhost:6379/0",
         alias="CELERY_BROKER_URL"
     )
+    
+    rate_limit_enabled: bool = Field(
+        default=True,
+        alias="RATE_LIMIT_ENABLED",
+        description="Включить rate limiting"
+    )
+    
+    rate_limit_ip_limit: int = Field(
+        default=100,
+        alias="RATE_LIMIT_IP_LIMIT",
+        description="Количество запросов в минуту с одного IP"
+    )
+    
+    rate_limit_token_limit: int = Field(
+        default=1000,
+        alias="RATE_LIMIT_TOKEN_LIMIT",
+        description="Количество запросов в минуту с одного токена"
+    )
+    
+    rate_limit_window_size: int = Field(
+        default=60,
+        alias="RATE_LIMIT_WINDOW_SIZE",
+        description="Размер окна в секундах"
+    )
+    
+    rate_limit_redis_failure_policy: Literal["fail-open", "fail-closed"] = Field(
+        default="fail-closed",
+        alias="RATE_LIMIT_REDIS_FAILURE_POLICY",
+        description="Политика при недоступности Redis: fail-open или fail-closed"
+    )
+    
     # нормализация
     
     @field_validator("environment", mode="before")
