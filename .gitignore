@@ -31,6 +31,7 @@ htmlcov/
 db.sqlite3
 *.sqlite3
 *.db
+backups/
 
 # --- Data / runtime artifacts ---
 data/
@@ -38,6 +39,7 @@ data/
 celerybeat*
 celerybeat-schedule*
 db_dumps/
+artifacts/
 
 # --- Local-only sources ---
 src/playground

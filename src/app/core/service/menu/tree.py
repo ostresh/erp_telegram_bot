@@ -19,6 +19,7 @@ MENU_TREE = MenuNode(
                     MenuAction(key='buy', title=ActionLabel.BUY, handler_action='buy-goods'),
                     MenuAction(key='sell', title=ActionLabel.SELL, handler_action='sell-goods')
                 ],
+                MenuAction(key='create_labels', title=ActionLabel.CREATE_LABELS, handler_action='create_labels'),
                 MenuAction(key='order_arrived', title=ActionLabel.ORDER_ARRIVED, handler_action='order-arrived'),
                 MenuAction(key='change_selling_price', title=ActionLabel.CHANGE_SELLING_PRICE, handler_action='change-selling-price'),
                 MenuAction(key='add_trns', title=ActionLabel.ADD_TRNS, handler_action='add-trns'),

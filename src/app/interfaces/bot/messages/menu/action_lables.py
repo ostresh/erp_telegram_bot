@@ -11,6 +11,7 @@ class ActionLabel:
     # Товары
     BUY = "🔻 ПОКУПКА"
     SELL = "🔼 ПРОДАЖА"
+    CREATE_LABELS = "🏷️ СОЗДАТЬ ЭТИКЕТКИ"
     ORDER_ARRIVED = "✅ ПОЛУЧЕНИЕ ЗАКАЗА"
     SWAP = "🔄 ОБМЕН"
     RESERVE = "🎫 БРОНЬ"

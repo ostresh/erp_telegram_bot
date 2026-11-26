@@ -14,7 +14,7 @@
     python -m manage run celery beat
     python -m manage run celery all
     
-    python -m manage test
+    python -m manage playground
 """
 import subprocess
 import sys
@@ -271,10 +271,10 @@ def handle_celery(args: list[str]) -> int:
         log_error(f"Неизвестная celery команда: {command}")
         return 1
 
-# === Команда test ===
+# === Команда playground ===
 
-def handle_test(args: list[str]) -> int:
-    """Обработка команды test."""
+def handle_playground(args: list[str]) -> int:
+    """Обработка команды playground."""
     log_info("Запуск playground...")
     result = subprocess.run([sys.executable, "-m", "playground.main"])
     return result.returncode
@@ -292,7 +292,7 @@ def print_main_help():
 {Colors.BOLD}Команды:{Colors.RESET}
   {Colors.CYAN}migrate{Colors.RESET}              Управление миграциями БД (Alembic)
   {Colors.CYAN}run <app>{Colors.RESET}            Запуск приложений (bot, api, celery)
-  {Colors.CYAN}test{Colors.RESET}                 Запуск playground
+  {Colors.CYAN}playground{Colors.RESET}           Запуск playground
 
 {Colors.BOLD}Примеры:{Colors.RESET}
   python -m manage migrate init "Initial tables"
@@ -300,7 +300,7 @@ def print_main_help():
   python -m manage run bot
   python -m manage run api
   python -m manage run celery all
-  python -m manage test
+  python -m manage playground
 
 {Colors.BOLD}Справка по команде:{Colors.RESET}
   python -m manage migrate
@@ -323,8 +323,8 @@ def main():
     elif command == "run":
         sys.exit(handle_run(sys.argv[2:]))
     
-    elif command == "test":
-        sys.exit(handle_test(sys.argv[2:]))
+    elif command == "playground":
+        sys.exit(handle_playground(sys.argv[2:]))
     
     elif command in ("help", "-h", "--help"):
         print_main_help()

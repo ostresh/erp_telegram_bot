@@ -3,6 +3,7 @@ from .sell_goods.dialog import sell_goods_dialog
 from .order_arrived.dialog import order_arrived_dialog
 from .change_selling_price.dialog import change_selling_price_dialog
 from .add_trns.dialog import add_trns_dialog
+from .create_labels.dialog import create_labels_dialog
 from .extra import GOODS_EXTRA_DIALOGS
 
 GOODS_DIALOGS = [
@@ -11,6 +12,7 @@ GOODS_DIALOGS = [
     order_arrived_dialog,
     change_selling_price_dialog,
     add_trns_dialog,
+    create_labels_dialog,
     *GOODS_EXTRA_DIALOGS
 ]
 

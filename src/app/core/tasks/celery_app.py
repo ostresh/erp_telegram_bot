@@ -8,7 +8,12 @@ celery_app = Celery(
     'tasks',
     broker=config.CELERY_BROKER_URL,
     backend=config.CELERY_RESULT_BACKEND,
-    include=['app.core.tasks.cleanup', 'app.core.tasks.report.movement', 'app.core.tasks.report.sales'],
+    include=[
+        'app.core.tasks.cleanup', 
+        'app.core.tasks.report.movement', 
+        'app.core.tasks.report.sales',
+        'app.core.tasks.labels'
+        ],
 )
 
 celery_app.conf.update(
