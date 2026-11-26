@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from app.core.utils.logger import setup_logger
 from .dependencies.redis import close_redis_client, init_redis_client
 from .domains import ROUTERS
+from .middleware import MIDDLEWARES
 
 from .config import api_config
 
@@ -43,6 +44,9 @@ app = FastAPI(
     openapi_url=f"{api_config.api_prefix}/openapi.json" if enable_docs else None,
     lifespan=lifespan
 )
+
+for middleware_ in MIDDLEWARES:
+    app.add_middleware(middleware_)
 
 for config in ROUTERS:
     app.include_router(
