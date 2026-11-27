@@ -68,13 +68,13 @@ class ApiConfig(BaseSettings):
     rate_limit_ip_limit: int = Field(
         default=100,
         alias="RATE_LIMIT_IP_LIMIT",
-        description="Количество запросов в минуту с одного IP"
+        description="Лимит запросов по IP за окно"
     )
     
     rate_limit_token_limit: int = Field(
         default=1000,
         alias="RATE_LIMIT_TOKEN_LIMIT",
-        description="Количество запросов в минуту с одного токена"
+        description="Лимит запросов по токену за окно"
     )
     
     rate_limit_window_size: int = Field(

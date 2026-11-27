@@ -29,23 +29,18 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         Позже здесь будет проверка лимитов
         """
         
-        try:
+        if not api_config.rate_limit_enabled:
+            return await call_next(request)
         
-            if not api_config.rate_limit_enabled:
-                return await call_next(request)
+        try:
             
             redis = await get_redis()
             limiter = RateLimiter(redis)
             
-            ip = self._get_client_ip(request)
+            ip = self._get_client_ip(request) if request.client else 'unknown'
             
             # 1. проверка лимита по ip
-            ip_result = await limiter.check_ip_limit(
-                ip=ip,
-                limit=api_config.rate_limit_ip_limit,
-                window_size=api_config.rate_limit_window_size
-            )
-            
+            ip_result = await limiter.check_ip_limit(ip=ip)
             if not ip_result.allowed:
                 return self._rate_limit_response(ip_result)
             
@@ -55,12 +50,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             )
             
             if token_hash is not None:
-                token_result = await limiter.check_hash_limit(
-                    token_hash=token_hash,
-                    limit=api_config.rate_limit_token_limit,
-                    window_size=api_config.rate_limit_window_size
-                )
-                
+                token_result = await limiter.check_hash_limit(token_hash=token_hash)
                 if not token_result.allowed:
                     return self._rate_limit_response(token_result)
                 
@@ -103,7 +93,6 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         
         Позже добавим поддержку X-Forwarded-For
         """
-        
         return request.client.host
         
     def _rate_limit_response(self, result: RateLimitResult) -> JSONResponse:
