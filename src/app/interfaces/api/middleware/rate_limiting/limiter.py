@@ -1,3 +1,4 @@
+import hashlib
 import time
 
 from redis.asyncio import Redis
@@ -26,12 +27,12 @@ class RateLimiter:
         window_size: int
     ) -> RateLimitResult:
         """
-        Проверяет, не превышен ли лимит.
+        Проверяет, не превышен ли лимит по IP.
         
         Args:
-            ip: IP адрес
-            limit: Максимальное количество запросов
-            window_size: Размер окна в секундах
+            ip (str): IP адрес
+            limit (int): Максимальное количество запросов
+            window_size (int): Размер окна в секундах
             
         Returns:
             RateLimitResult с информацией о разрешении и текущем счётчике
@@ -60,6 +61,74 @@ class RateLimiter:
             limit=limit,
             remaining=max(0, limit - current)
         )
+    
+    async def check_hash_limit(
+        self,
+        token_hash: str,
+        limit: int,
+        window_size: int
+    ) -> RateLimitResult:
+        """
+        Проверяет, не превышен ли лимит по token_hash.
+        
+        Args:
+            token_hash (str): SHA-256 токена
+            limit: Максимальное количество запросов
+            window_size: Размер окна в секундах
+            
+        Returns:
+            RateLimitResult с информацией о разрешении и текущем счётчике
+        """
+        
+        current_window = self._get_current_window(window_size)
+        key = f"rl:token:{token_hash}:{current_window}"
+        
+        current = await self.redis.eval(
+            RATE_LIMIT_LUA_SCRIPT,
+            1,
+            key,
+            limit,
+            window_size
+        )
+        
+        allowed = current <= limit
+        
+        return RateLimitResult(
+            allowed=allowed,
+            current_count=int(current),
+            limit=limit,
+            remaining=max(0, limit - current)
+        )
+    
+    def extract_token_hash(self, auth_header: str | None) -> str | None:
+        """
+        Извлекает текоен из заголовка Authorization и возвращает его хеш
+        
+        Формат заголовка: "Bearer <token>"
+        
+        Args:
+            auth_header (str | None): Значение заголовка Authorization
+            
+        Returns:
+            SHA-256 хеш токена или None, если заголовок некорректен
+        """
+        
+        if not auth_header:
+            return None
+        
+        # проверяем формат: "Bearer <token>"
+        parts = auth_header.split(" ", 1)
+        if len(parts) != 2:
+            return None
+        
+        scheme, token = parts
+        if scheme.lower() != "bearer":
+            return None
+        
+        token_hash = hashlib.sha256(token.encode()).hexdigest()
+        return token_hash
+        
+    
         
     def _get_current_window(self, window_size: int) -> int:
         """
@@ -70,6 +139,9 @@ class RateLimiter:
         """
         current_time = int(time.time())
         return current_time - (current_time % window_size)
+    
+    
+        
         
         
     
